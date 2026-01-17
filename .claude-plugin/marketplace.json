@@ -1,0 +1,16 @@
+{
+    "name": "owid-claude-plugins",
+    "metadata": {
+        "description": "A collection of tools and plugins developed by Our World In Data for working with data from Our World In Data."
+    },
+    "owner": {
+        "name": "Our World In Data",
+        "email": "tech@ourworldindata.org"
+    },
+    "plugins": [
+        {
+            "name": "owid-general",
+            "source": "./plugins/owid-general"
+        }
+    ]
+}

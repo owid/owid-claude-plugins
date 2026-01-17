@@ -1,0 +1,10 @@
+{
+    "name": "owid-general",
+    "description": "A set of general skills that are common across use-cases at Our World In Data, regardless of the type of project or programming language. Examples include instructions for how we manage python dependencies or how to use the duckdb cli for ad-hoc data work in a terminal.",
+    "version": "0.1.0",
+    "author": {
+        "name": "Daniel Bachler",
+        "email": "daniel.bachler@ourworldindata.org"
+    },
+    "license": "Apache-2.0"
+}
