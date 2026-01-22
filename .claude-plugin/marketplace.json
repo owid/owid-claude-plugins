@@ -11,6 +11,11 @@
         {
             "name": "owid-general",
             "source": "./plugins/owid-general"
+        },
+        {
+            "name": "owid-data",
+            "source": "./plugins/owid-data"
         }
+
     ]
 }

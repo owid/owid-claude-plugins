@@ -28,7 +28,7 @@ packages=(
     # "pandoc"
     # "jq"
     # "gh"
-    # "duckdb"
+    "duckdb"
     "claude-code:claude"
 )
 
