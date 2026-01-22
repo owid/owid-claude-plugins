@@ -1,8 +1,14 @@
 ---
-description: "This skill describes how to fetch data for an Our World In Data chart, once the relevant chart URL has been identified. Consult this skill to understand the possible query params to get the best results and to understand the response."
+description: "This skill describes how to fetch data for an Our World In Data chart, once the relevant chart URL has been identified. Consult this skill to understand the possible query params to get the best results and to understand the response. Use it when the user asks for data."
+allowed-tools:
+- "Bash(curl:*)"
+- "Bash(cat:*)"
+- "Bash(jq:*)"
 ---
 
 Once you have identified a chart url like `https://ourworldindata.org/grapher/literate-and-illiterate-world-population`, there are two key artifacts you can retrieve: the metadata json file, and the data csv file. The urls for both are `$CHARTURL.metadata.json` and `$CHARTURL.csv` respectively. Set the query parameter `useColumnShortNames` to `true` so that columns in the csv don't contain whitespaces and are easier to work with in code.
+
+Always fetch the metadata first before fetching the data as it gives important context. Pay special attention to the desciptionKey field if it is given.
 
 ## Metadata
 

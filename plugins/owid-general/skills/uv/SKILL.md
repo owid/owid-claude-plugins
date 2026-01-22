@@ -4,6 +4,14 @@ globs:
   - "*.py"
   - "pyproject.toml"
   - "requirements*.txt"
+allowed-tools:
+- "Bash(uv add:*)"
+- "Bash(uv remove:*)"
+- "Bash(uv sync:*)"
+- "Bash(uv pip:*)"
+- "Bash(uv init:*)"
+- "Bash(uv tree:*)"
+- "Bash(uv pip:*)"
 ---
 
 # Using uv for Python
