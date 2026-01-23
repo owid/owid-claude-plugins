@@ -31,7 +31,7 @@ General purpose instructions that we find useful at Our World In Data across pro
 
 ## owid-data
 
-
+Skills for working with data from Our World In Data. Teaches Claude Code to search our collection of charts, download the data powering a given chart, and how to join our data with other data sources (for example to calculate per capita numbers or to create scatter plots vs GDP)
 
 ## Development
 
