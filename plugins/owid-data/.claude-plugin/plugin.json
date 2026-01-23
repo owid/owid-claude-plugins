@@ -1,7 +1,7 @@
 {
     "name": "owid-data",
     "description": "A set of skills to work with data from Our World In Data. Describes searching for charts and fetching their metadata and data. Describes the structure and retrieval endpoints independent of any specific programming language.",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "author": {
         "name": "Daniel Bachler",
         "email": "daniel.bachler@ourworldindata.org"
