@@ -6,6 +6,5 @@ globs:
 allowed-tools:
 - "Bash(duckdb:*)"
 ---
----
 
 When using duckdb for querying single files, use the `DESCRIBE SELECT` and, optionally, `SUMMARIZE SELECT` statements to understand the structure beforehand.

@@ -1,3 +1,4 @@
+#!/usr/bin/env -S uv run --script
 """
 Claude Code Hook: Pre-Bash Command Validator.
 
