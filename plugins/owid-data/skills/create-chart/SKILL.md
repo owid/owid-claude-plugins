@@ -19,9 +19,10 @@ The `owid-grapher-py` library creates interactive charts that look and behave li
 uv pip install owid-grapher-py
 ```
 
-For PNG/SVG export (requires Playwright):
+For PNG/SVG export, install Playwright and its browser **as two separate steps**:
 ```bash
-uv pip install playwright && playwright install chromium
+uv pip install playwright
+playwright install chromium
 ```
 
 ## IMPORTANT: Before Writing Code
@@ -121,3 +122,16 @@ plot(df, y="value", title="My Chart", entities=["France", "Japan"], types=["line
 `plot()` accepts chart type, entity selection, color scheme, units, and more as parameters. See `llms-full.txt` for the full signature.
 
 **Use `Chart()` when you need finer control** (e.g. multiple mark types with different options, axis configuration, transforms):
+
+## Exporting to PNG / SVG
+
+Requires Playwright (see installation above). Use `save_png()` or `save_svg()` on the chart object returned by `plot()`:
+
+```python
+chart = plot(df, y="value", title="My Chart", types=["map", "line"])
+
+chart.save_png("chart.png")
+chart.save_svg("chart.svg")
+```
+
+**Important:** The exported image renders the **first tab** in `types=[]`. So if you want a map PNG, put `"map"` first: `types=["map", "line"]`. For a line chart PNG, use `types=["line", "map"]`.
