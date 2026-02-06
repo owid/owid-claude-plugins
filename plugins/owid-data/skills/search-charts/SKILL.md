@@ -70,10 +70,40 @@ interface SearchResult {
 
 The response json can be quite verbose, so don't pull the search results into your context window but instead use `jq` or a programming language to extract the information you need (often title, subtitle and url are the most relevant fields for any given hit).
 
+Example - extract key fields from top 5 results:
+```bash
+curl -s "https://ourworldindata.org/api/search?q=life+expectancy&limit=5" | jq '.results[] | {title, subtitle, url, availableTabs}'
+```
+
+## Search Tips
+
 The search is a keyword based search operated by Algolia. The query param `q` is used to submit the search string. The vocabulary used at OWID is often following that of topic specialists, so search for "death rate malaria" instead of "people who died from malaria", or "literacy" instead of "people who can read".
 
 Results are sorted by relevance - usually the first page of hits will contain the best results. If you get a large number of charts back, and the top charts don't seem to be ideal matches, try refining the search with additional terms. If you don't get any results, try a search with slightly different terms or synonyms.
 
 It is often a good idea to communicate the top hits back to the user and either ask them which chart/data to proceed with or to pick the best but let them know the title of a few others that were also considered.
+
+## Available Visualizations
+
+The `availableTabs` field indicates what visualizations a chart supports. Use these mappings when constructing URLs:
+
+| Tab Name (from API) | URL tab parameter | Description |
+|---------------------|-------------------|-------------|
+| `LineChart` | `line` | Time series line chart |
+| `WorldMap` | `map` | Choropleth world map |
+| `Table` | `table` | Data table view |
+| `DiscreteBar` | `discrete-bar` | Bar chart |
+| `SlopeChart` | `slope` | Slope chart comparing two time points |
+| `Marimekko` | `marimekko` | Marimekko/mosaic chart |
+| `ScatterPlot` | `scatter` | Scatter plot |
+| `StackedArea` | `stacked-area` | Stacked area chart |
+| `StackedBar` | `stacked-bar` | Stacked bar chart |
+
+To display a specific visualization, append `?tab=<value>` to the chart URL. For example:
+```
+https://ourworldindata.org/grapher/life-expectancy?tab=map
+```
+
+## Using Search Results
 
 To fetch either the visual chart or the data, use the url property as is verbatim, including all query params. Consult the fetch-chart-image or fetch-chart-data skills for more details on how best to request either one.

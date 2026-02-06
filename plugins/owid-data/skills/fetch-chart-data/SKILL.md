@@ -6,9 +6,43 @@ allowed-tools:
 - "Bash(jq:*)"
 ---
 
-Once you have identified a chart url like `https://ourworldindata.org/grapher/literate-and-illiterate-world-population`, there are two key artifacts you can retrieve: the metadata json file, and the data csv file. The urls for both are `$CHARTURL.metadata.json` and `$CHARTURL.csv` respectively. Set the query parameter `useColumnShortNames` to `true` so that columns in the csv don't contain whitespaces and are easier to work with in code.
+Once you have identified a chart url like `https://ourworldindata.org/grapher/literate-and-illiterate-world-population`, there are two key artifacts you can retrieve: the metadata json file, and the data csv file. The urls for both are `$CHARTURL.metadata.json` and `$CHARTURL.csv` respectively.
 
-Always fetch the metadata first before fetching the data as it gives important context. Pay special attention to the desciptionKey field if it is given.
+Always fetch the metadata first before fetching the data as it gives important context. Pay special attention to the descriptionKey field if it is given.
+
+## Query Parameters
+
+Both endpoints support these query parameters to filter data and reduce response size:
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `useColumnShortNames` | Use short column names without spaces | `true` |
+| `csvType` | Use `filtered` to respect country/time filters | `filtered` |
+| `country` | Filter to specific countries (ISO3 codes joined with `~`) | `USA~GBR~CHN` |
+| `time` | Filter to time range | `2000..2020` or `2015` |
+| `tab` | Chart visualization type | `map`, `line`, `table` |
+
+**Recommended base parameters:** `?useColumnShortNames=true&csvType=filtered`
+
+Example with filters:
+```
+https://ourworldindata.org/grapher/life-expectancy.csv?useColumnShortNames=true&csvType=filtered&country=USA~GBR&time=2000..2020
+```
+
+## Token Optimization
+
+To reduce token usage when working with the data:
+
+1. **Remove the Entity column** - The CSV has both "Entity" (country name) and "Code" (ISO3). The Code column is sufficient for analysis and joining. Remove Entity to save tokens:
+   ```bash
+   curl -s "$URL" | cut -d',' -f2-
+   ```
+
+2. **Filter metadata** - The full metadata is verbose. Key fields to extract:
+   - `chart.title`, `chart.subtitle`, `chart.note`, `chart.citation`
+   - `columns.*.titleShort`, `columns.*.descriptionShort`, `columns.*.unit`, `columns.*.shortUnit`
+
+   Skip these verbose fields: `titleLong`, `citationLong`, `fullMetadata`, `owidVariableId`, `lastUpdated`, `nextUpdate`
 
 ## Metadata
 
@@ -16,7 +50,6 @@ The metadata outlines key information about the chart, as well as information on
 
 The typescript type of the metadata json file is as follows:
 ```typescript
-
 export type MetadataColumn = {
     titleShort: string
     titleLong: string
@@ -66,6 +99,6 @@ The first two columns in the CSV file are "Entity" and "Code". "Entity" is the n
 
 The third column is either "Year" or "Day". If the data is annual, this is "Year" and contains only the year as an integer. If the column is "Day", the column contains a date string in the form "YYYY-MM-DD".
 
-The other columns are the data column, which are the time series that power the chart.
+The other columns are the data columns, which are the time series that power the chart.
 
 Prefer to download the CSV and metadata into a file and process it from there.
