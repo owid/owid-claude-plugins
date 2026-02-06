@@ -15,7 +15,10 @@
         {
             "name": "owid-data",
             "source": "./plugins/owid-data"
+        },
+        {
+            "name": "owid-general-staff",
+            "source": "./plugins/owid-general-staff"
         }
-
     ]
 }

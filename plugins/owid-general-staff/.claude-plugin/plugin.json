@@ -1,0 +1,10 @@
+{
+    "name": "owid-general-staff",
+    "description": "Skills that are only useful for Our World In Data staff members because they require access to internal infrastructure or credentials. Includes access to internal datasette, database mirrors, and analytics data stores.",
+    "version": "0.1.0",
+    "author": {
+        "name": "Daniel Bachler",
+        "email": "daniel.bachler@ourworldindata.org"
+    },
+    "license": "Apache-2.0"
+}

@@ -24,10 +24,10 @@ fi
 packages=(
     "uv"
     # "ripgrep-all:rga"
-    # "ripgrep:rg"
+    "ripgrep:rg"
     # "pandoc"
-    # "jq"
-    # "gh"
+    "jq"
+    "gh"
     "duckdb"
     "claude-code:claude"
 )
