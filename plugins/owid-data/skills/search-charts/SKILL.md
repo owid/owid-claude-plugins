@@ -9,6 +9,11 @@ allowed-tools:
 Searching for charts is done via an http request to
 https://ourworldindata.org/api/search
 
+Query parameters:
+- `q` — search string (keyword-based, Algolia-powered)
+- `hitsPerPage` — number of results per page (default: 20)
+- `page` — page number, 0-indexed (default: 0)
+
 The result is a json that adheres to this schema:
 ```typescript
 export enum ChartRecordType {
@@ -72,7 +77,7 @@ The response json can be quite verbose, so don't pull the search results into yo
 
 Example - extract key fields from top 5 results:
 ```bash
-curl -s "https://ourworldindata.org/api/search?q=life+expectancy&limit=5" | jq '.results[] | {title, subtitle, url, availableTabs}'
+curl -s "https://ourworldindata.org/api/search?q=life+expectancy&hitsPerPage=5" | jq '.results[] | {title, subtitle, url, availableTabs}'
 ```
 
 ## Search Tips
