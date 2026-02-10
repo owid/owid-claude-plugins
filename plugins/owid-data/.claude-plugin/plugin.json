@@ -1,7 +1,7 @@
 {
     "name": "owid-data",
-    "description": "A set of skills to work with data from Our World In Data. Includes searching charts, fetching data, creating charts, accessing indicators directly, running SQL queries, and fetching article content.",
-    "version": "0.1.8",
+    "description": "A set of skills to work with data from Our World In Data. Includes searching charts, fetching data, creating charts, accessing indicators directly, querying the public datasette, and fetching article content.",
+    "version": "0.1.9",
     "author": {
         "name": "Daniel Bachler",
         "email": "daniel.bachler@ourworldindata.org"

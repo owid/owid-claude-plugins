@@ -2,6 +2,7 @@
 description: Access Our World In Data's internal datasette instance to query data from our main MySQL database mirror and analytics data store. Use this when you need to look up or explore data from our internal infrastructure. Does not contain any timeseries data i.e. this does not help to answer questions about data like "what is the life expectancy in Nigeria?". Instead, it is useful for questions like "how many published charts do we have?" or "get the title for all views for a multidim".
 allowed-tools:
   - "Bash(curl:*)"
+  - "Bash(jq:*)"
 ---
 
 # Querying OWID's internal Datasette instance
@@ -19,7 +20,7 @@ The datasette instance is available via tailscale at:
 http://analytics/
 ```
 
-No API keys or tokens are needed — access is controlled at the network level.
+No API keys or tokens are needed — access is controlled at the network level. However, **you must always include a User-Agent header** — requests without one get a 502 error. Use `-H "User-Agent: Claude"` on every curl call.
 
 ## Available databases
 
@@ -50,7 +51,7 @@ Before constructing any SQL query against a database, you **must** first retriev
 ### Step 1: Get the list of tables with columns, primary keys, and foreign keys
 
 ```bash
-curl -s "http://analytics/private.json"
+curl -s -H "User-Agent: Claude" "http://analytics/private.json"
 ```
 
 This returns a JSON object with a `tables` array. Each entry includes:
@@ -65,7 +66,7 @@ This returns a JSON object with a `tables` array. Each entry includes:
 To get the `CREATE TABLE` statement for a specific table, query `sqlite_master`:
 
 ```bash
-curl -s -G "http://analytics/private.json" \
+curl -s -G -H "User-Agent: Claude" "http://analytics/private.json" \
   --data-urlencode "sql=SELECT sql FROM sqlite_master WHERE name = 'charts'" \
   --data-urlencode "_shape=array"
 ```
@@ -73,7 +74,7 @@ curl -s -G "http://analytics/private.json" \
 To get all column names and types for a table, you can also use `information_schema`:
 
 ```bash
-curl -s -G "http://analytics/private.json" \
+curl -s -G -H "User-Agent: Claude" "http://analytics/private.json" \
   --data-urlencode "sql=SELECT table_name, column_name, data_type FROM information_schema.columns WHERE table_name = 'charts'" \
   --data-urlencode "_shape=array"
 ```
@@ -81,7 +82,7 @@ curl -s -G "http://analytics/private.json" \
 ### Step 3: Check for human-readable descriptions
 
 ```bash
-curl -s "http://analytics/-/metadata.json"
+curl -s -H "User-Agent: Claude" "http://analytics/-/metadata.json"
 ```
 
 This returns descriptions for databases, tables, and individual columns.
@@ -93,7 +94,7 @@ This returns descriptions for databases, tables, and individual columns.
 Append `.json` to the database name:
 
 ```bash
-curl -s -G "http://analytics/private.json" \
+curl -s -G -H "User-Agent: Claude" "http://analytics/private.json" \
   --data-urlencode "sql=SELECT * FROM charts LIMIT 5" \
   --data-urlencode "_shape=objects"
 ```
@@ -103,7 +104,7 @@ curl -s -G "http://analytics/private.json" \
 Append `.csv` instead:
 
 ```bash
-curl -s -G "http://analytics/private.csv" \
+curl -s -G -H "User-Agent: Claude" "http://analytics/private.csv" \
   --data-urlencode "sql=SELECT * FROM charts LIMIT 5"
 ```
 
@@ -125,10 +126,10 @@ You can also browse table data directly without writing SQL. Append `.json` or `
 
 ```bash
 # JSON
-curl -s "http://analytics/private/charts.json?_size=5&_shape=objects"
+curl -s -H "User-Agent: Claude" "http://analytics/private/charts.json?_size=5&_shape=objects"
 
 # CSV
-curl -s "http://analytics/private/charts.csv?_size=5"
+curl -s -H "User-Agent: Claude" "http://analytics/private/charts.csv?_size=5"
 ```
 
 Table endpoints support column filtering with `?column__operator=value` syntax:
@@ -157,8 +158,38 @@ Table endpoints support column filtering with `?column__operator=value` syntax:
 
 ## Tips
 
-- Always use `curl -s -G` with `--data-urlencode` to safely pass SQL queries — this avoids manual URL-encoding.
+- Always use `curl -s -G -H "User-Agent: Claude"` with `--data-urlencode` to safely pass SQL queries — this avoids manual URL-encoding and the User-Agent header is required to avoid 502 errors.
 - For large result sets, use `LIMIT` and `OFFSET` in your SQL to paginate, or use `_stream=on` with CSV output to get all rows at once.
 - The datasette instance mirrors data periodically — it may not reflect the very latest changes to the production database.
 - Only `SELECT` statements are allowed. `INSERT`, `UPDATE`, `DELETE`, and `PRAGMA` are rejected.
 - Use `_size=max` to get up to 1000 rows in a single JSON response.
+
+## Example Queries
+
+Find indicators by name:
+```bash
+curl -s -G -H "User-Agent: Claude" "http://analytics/private.json" \
+  --data-urlencode "sql=SELECT id, name, unit, catalogPath FROM variables WHERE name LIKE '%renewable energy%' ORDER BY id DESC LIMIT 10" \
+  --data-urlencode "_shape=array" | jq
+```
+
+Find published charts by topic:
+```bash
+curl -s -G -H "User-Agent: Claude" "http://analytics/private.json" \
+  --data-urlencode "sql=SELECT id, title, slug, type FROM charts WHERE title LIKE '%life expectancy%' AND isPublished = 1 LIMIT 10" \
+  --data-urlencode "_shape=array" | jq
+```
+
+Find which variables power a chart:
+```bash
+curl -s -G -H "User-Agent: Claude" "http://analytics/private.json" \
+  --data-urlencode "sql=SELECT v.id, v.name, v.unit FROM variables v JOIN chart_dimensions cd ON v.id = cd.variableId JOIN charts c ON cd.chartId = c.id WHERE c.slug = 'life-expectancy'" \
+  --data-urlencode "_shape=array" | jq
+```
+
+Count charts by type:
+```bash
+curl -s -G -H "User-Agent: Claude" "http://analytics/private.json" \
+  --data-urlencode "sql=SELECT type, COUNT(*) as count FROM charts WHERE isPublished = 1 GROUP BY type ORDER BY count DESC" \
+  --data-urlencode "_shape=array" | jq
+```

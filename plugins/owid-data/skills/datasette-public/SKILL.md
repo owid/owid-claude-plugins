@@ -1,30 +1,58 @@
 ---
-name: "sql-queries"
-description: "Execute read-only SQL queries against the OWID public Datasette database. Use this for flexible data exploration, custom joins, filtering, and accessing the underlying variables, datasets, charts, and entities tables directly."
+name: "datasette-public"
+description: "Query the OWID public Datasette database to explore metadata about indicators, datasets, charts, entities, and articles. Use this for flexible data exploration, custom joins, filtering, and accessing the underlying variables, datasets, charts, and entities tables directly."
 allowed-tools:
 - "Bash(curl:*)"
 - "Bash(jq:*)"
 ---
 
-OWID provides a public Datasette instance at `https://datasette-public.owid.io/` that allows read-only SQL queries against the database. This gives you flexible access to metadata about indicators, datasets, charts, entities, articles, and more.
+OWID provides a public Datasette instance at `https://datasette-public.owid.io/` that allows read-only SQL queries against a single database called `owid`.
 
 ## Executing SQL Queries
 
-Use the Datasette JSON API. Always add `_shape=array` for clean JSON output:
+Always use `curl -s -G` with `--data-urlencode` to safely pass SQL — this avoids manual URL-encoding:
 
 ```bash
-# Basic query — _shape=array returns a plain JSON array of objects
-curl -s "https://datasette-public.owid.io/owid.json?sql=SELECT+id,name+FROM+variables+WHERE+name+LIKE+'%25population%25'+LIMIT+10&_shape=array" | jq
+# JSON output — use _shape=array for a clean JSON array of objects
+curl -s -G "https://datasette-public.owid.io/owid.json" \
+  --data-urlencode "sql=SELECT id, name FROM variables WHERE name LIKE '%population%' LIMIT 10" \
+  --data-urlencode "_shape=array" | jq
 
-# URL-encode complex queries with python
-curl -s "https://datasette-public.owid.io/owid.json?_shape=array&sql=$(python3 -c 'import urllib.parse; print(urllib.parse.quote("SELECT id, name FROM variables WHERE name LIKE \"%coal%\" LIMIT 10"))')" | jq
+# CSV output
+curl -s -G "https://datasette-public.owid.io/owid.csv" \
+  --data-urlencode "sql=SELECT id, name FROM variables WHERE name LIKE '%population%' LIMIT 10"
 ```
 
 ## Important Constraints
 
 1. **SELECT only** — only SELECT statements are allowed.
 2. **Row limit is 1000** — the server caps results at 1000 rows regardless of your LIMIT. If the response includes `"truncated": true`, your results were cut off. Use more specific WHERE clauses to narrow results.
-3. **Always use `_shape=array`** — without it, the response is a dict with `columns` and `rows` arrays (harder to parse). With `_shape=array` you get `[{col: val, ...}, ...]`.
+
+## JSON Shape Options
+
+The `_shape` parameter controls how rows are formatted in JSON responses:
+
+| Value        | Effect                                                    |
+| ------------ | --------------------------------------------------------- |
+| `array`      | Flat JSON array of objects, no wrapper metadata (recommended) |
+| `objects`    | Rows as key/value objects with wrapper metadata            |
+| `arrays`     | Rows as arrays of values, no column keys                  |
+| `arrayfirst` | Flat array of just the first column's values              |
+| `object`     | Objects keyed by primary key                              |
+
+## Useful Query Parameters
+
+| Parameter     | Description                                                |
+| ------------- | ---------------------------------------------------------- |
+| `sql`         | The SQL query (use `--data-urlencode` to pass it safely)   |
+| `_shape`      | JSON response shape (see above)                            |
+| `_size`       | Rows per page (use `_size=max` for up to 1000)             |
+| `_sort`       | Sort ascending by column                                   |
+| `_sort_desc`  | Sort descending by column                                  |
+| `_col`        | Include only this column (repeatable)                      |
+| `_nocol`      | Exclude this column (repeatable)                           |
+| `_where`      | Add a WHERE clause fragment                                |
+| `_stream=on`  | Stream all rows (CSV only, up to 100MB)                    |
 
 ## Key Tables
 
@@ -146,5 +174,7 @@ LIMIT 20
 
 If a column doesn't exist, the API returns a JSON error. Discover available columns with:
 ```bash
-curl -s "https://datasette-public.owid.io/owid.json?sql=SELECT+*+FROM+variables+LIMIT+1&_shape=array" | jq '.[0] | keys'
+curl -s -G "https://datasette-public.owid.io/owid.json" \
+  --data-urlencode "sql=SELECT * FROM variables LIMIT 1" \
+  --data-urlencode "_shape=array" | jq '.[0] | keys'
 ```
