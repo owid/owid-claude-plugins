@@ -29,9 +29,27 @@ curl -sSL https://raw.githubusercontent.com/owid/owid-claude-plugins/main/instal
 
 General purpose instructions that we find useful at Our World In Data across projects, regardless of programming language. For example there is a skill that tells agents to use `uv` instead of system `python` for running python code and managing dependencies or instructions to use `duckdb`.
 
-## owid-data
+Skills:
+- **duckdb** — Use the DuckDB CLI for ad-hoc data analysis from CSV, Parquet, or NDJSON files
+- **uv** — Manage Python scripts and dependencies with `uv` instead of `pip` or `python`
 
-Skills for working with data from Our World In Data. Teaches Claude Code to search our collection of charts, download the data powering a given chart, and how to join our data with other data sources (for example to calculate per capita numbers or to create scatter plots vs GDP)
+### owid-data
+
+Skills for working with data from Our World In Data. Teaches Claude Code to search our collection of charts, download the data powering a given chart, create charts, query our public datasette, and join our data with other data sources.
+
+Skills:
+- **search-charts** — Search for OWID charts by keyword using Algolia
+- **fetch-chart-data** — Download data and metadata for a specific chart
+- **create-chart** — Create interactive OWID-style charts using `owid-grapher-py` (Jupyter notebooks, HTML, PNG, SVG)
+- **datasette-public** — Query the OWID public Datasette to explore metadata about indicators, datasets, charts, and entities via SQL
+- **joining-data** — Join OWID data with external sources (e.g. for per-capita metrics or scatter plots vs GDP)
+
+### owid-general-staff
+
+Skills that are only useful for Our World In Data staff members because they require access to internal infrastructure or credentials.
+
+Skills:
+- **datasette** — Query OWID's internal datasette instance (MySQL database mirror and analytics data store) via SQL
 
 ## Development
 
