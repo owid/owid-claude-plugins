@@ -120,6 +120,9 @@ from owid.catalog import search
 results = search("share of energy from renewable sources", kind="indicator")
 print(results.to_frame().to_csv())
 
+# Get all fields for deeper inspection
+print(results.to_frame(all_fields=True).to_csv())
+
 # Sort by relevance (default) or similarity
 results = search("CO2 emissions per capita", kind="indicator", sort_by="relevance")
 
@@ -155,9 +158,17 @@ latest = results.latest()
 df = results.to_frame()
 print(df.to_csv())
 
-# In Jupyter: switch display mode for richer output
-results.set_ui_advanced()  # shows type, slug, popularity, version
-results.set_ui_basic()     # shows title, description, URL
+# Include all fields (more columns like type, slug, popularity, version)
+df = results.to_frame(all_fields=True)
+print(df.to_csv())
+
+# Convert to list of dicts (useful for programmatic access)
+records = results.to_dict()
+
+# In Jupyter: switch display mode for richer output (human users only)
+# "advanced" adds extra columns (type, slug, popularity, version) to the notebook display
+results.set_ui_advanced()
+results.set_ui_basic()     # default: shows title, description, URL
 ```
 
 ## Tips
