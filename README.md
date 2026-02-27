@@ -43,6 +43,7 @@ Skills:
 - **create-chart** — Create interactive OWID-style charts using `owid-grapher-py` (Jupyter notebooks, HTML, PNG, SVG)
 - **datasette-public** — Query the OWID public Datasette to explore metadata about indicators, datasets, charts, and entities via SQL
 - **joining-data** — Join OWID data with external sources (e.g. for per-capita metrics or scatter plots vs GDP)
+- **owid-catalog** — Access OWID's published datasets via the `owid-catalog` Python library (search charts, tables, and indicators; returns metadata-rich DataFrames)
 
 ### owid-general-staff
 
