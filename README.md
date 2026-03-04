@@ -21,7 +21,7 @@ curl -sSL https://raw.githubusercontent.com/owid/owid-claude-plugins/main/instal
     2. In the current project for all users - choose this if you work on this project with other people and the skills should be available for everyone working on this project
     3. In the current project only for you - choose this if you want the skills available only for you and only in this project
 - You can verify that a plugin is loaded by running `/plugin` and checking the `installed plugins` tab, or by just asking claude something like "Which skills are currently loaded?"
-- Tools should trigger automatically when they are useful (e.g. if you ask for fetching data with the `owid-data` plugin activated). You can also explicitly trigger them with as `/plugin-name:skill-name` - for example "Fetch the data for https://ourworldindata.org/grapher/life-expectancy - use /owid-data:fetch-chart-data"
+- Tools should trigger automatically when they are useful (e.g. if you ask for fetching data with the `owid-data-web` plugin activated). You can also explicitly trigger them with as `/plugin-name:skill-name` - for example "Fetch the data for https://ourworldindata.org/grapher/life-expectancy - use /owid-data-web:fetch-chart-data"
 
 ## Available plugins
 
@@ -35,7 +35,7 @@ Skills:
 
 ### owid-data-web
 
-Lightweight skills for working with Our World In Data chart data directly via the web. No additional dependencies required — only `curl` and `jq`.
+Lightweight skills for working with Our World In Data chart data directly via the web. Requires `curl`, `jq`, and `duckdb`.
 
 Skills:
 - **search-charts** — Search for OWID charts by keyword using Algolia
