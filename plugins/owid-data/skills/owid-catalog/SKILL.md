@@ -44,7 +44,7 @@ print(tb.head(30).to_csv())
 
 # Search for charts
 results = search("population")
-print(results.to_frame().to_csv())
+print(results.to_frame().head(30).to_csv())
 
 # Fetch the top result
 tb = results[0].fetch()
@@ -63,7 +63,7 @@ The default display of `ResponseSet` and `Table` objects uses rich formatting th
 ```python
 # Search results → CSV
 results = search("gdp per capita")
-print(results.to_frame().to_csv())
+print(results.to_frame().head(30).to_csv())
 
 # Table data → CSV (first rows)
 tb = fetch("life-expectancy")
@@ -88,7 +88,7 @@ tb = fetch("https://ourworldindata.org/grapher/life-expectancy")
 
 # Search charts (sorted by popularity)
 results = search("child mortality")
-print(results.to_frame().to_csv())  # see titles, slugs, URLs
+print(results.to_frame().head(30).to_csv())  # see titles, slugs, URLs
 
 # Fetch from search result
 tb = results[0].fetch()
@@ -105,7 +105,7 @@ from owid.catalog import search
 
 # Search tables with fuzzy matching (default)
 results = search("population", kind="table")
-print(results.to_frame().to_csv())
+print(results.to_frame().head(30).to_csv())
 
 # Filter by data provider
 results = search("wdi", kind="table", namespace="worldbank_wdi")
@@ -132,10 +132,10 @@ from owid.catalog import search
 
 # Semantic search (uses embeddings from search.owid.io)
 results = search("share of energy from renewable sources", kind="indicator")
-print(results.to_frame().to_csv())
+print(results.to_frame().head(30).to_csv())
 
 # Get all fields for deeper inspection
-print(results.to_frame(all_fields=True).to_csv())
+print(results.to_frame(all_fields=True).head(30).to_csv())
 
 # Sort by relevance (default) or similarity
 results = search("CO2 emissions per capita", kind="indicator", sort_by="relevance")
@@ -170,11 +170,11 @@ latest = results.latest()
 
 # Convert to DataFrame for analysis
 df = results.to_frame()
-print(df.to_csv())
+print(df.head(30).to_csv())
 
 # Include all fields (more columns like type, slug, popularity, version)
 df = results.to_frame(all_fields=True)
-print(df.to_csv())
+print(df.head(30).to_csv())
 
 # Convert to list of dicts (useful for programmatic access)
 records = results.to_dict()
