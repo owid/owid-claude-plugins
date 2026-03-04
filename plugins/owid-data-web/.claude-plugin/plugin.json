@@ -1,0 +1,10 @@
+{
+    "name": "owid-data-web",
+    "description": "Lightweight skills for working with Our World In Data chart data directly via the web. Includes searching charts, fetching chart data and metadata, and guidance on joining OWID data with external sources.",
+    "version": "0.1.0",
+    "author": {
+        "name": "Daniel Bachler",
+        "email": "daniel.bachler@ourworldindata.org"
+    },
+    "license": "Apache-2.0"
+}

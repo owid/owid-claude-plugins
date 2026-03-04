@@ -33,16 +33,22 @@ Skills:
 - **duckdb** — Use the DuckDB CLI for ad-hoc data analysis from CSV, Parquet, or NDJSON files
 - **uv** — Manage Python scripts and dependencies with `uv` instead of `pip` or `python`
 
-### owid-data
+### owid-data-web
 
-Skills for working with data from Our World In Data. Teaches Claude Code to search our collection of charts, download the data powering a given chart, create charts, query our public datasette, and join our data with other data sources.
+Lightweight skills for working with Our World In Data chart data directly via the web. No additional dependencies required — only `curl` and `jq`.
 
 Skills:
 - **search-charts** — Search for OWID charts by keyword using Algolia
 - **fetch-chart-data** — Download data and metadata for a specific chart
+- **joining-data** — Join OWID data with external sources (e.g. for per-capita metrics or scatter plots vs GDP)
+
+### owid-data
+
+Advanced skills for working with Our World In Data. Requires Python tooling (`uv`, `owid-catalog`, `owid-grapher-py`).
+
+Skills:
 - **create-chart** — Create interactive OWID-style charts using `owid-grapher-py` (Jupyter notebooks, HTML, PNG, SVG)
 - **datasette-public** — Query the OWID public Datasette to explore metadata about indicators, datasets, charts, and entities via SQL
-- **joining-data** — Join OWID data with external sources (e.g. for per-capita metrics or scatter plots vs GDP)
 - **owid-catalog** — Access OWID's published datasets via the `owid-catalog` Python library (search charts, tables, and indicators; returns metadata-rich DataFrames)
 
 ### owid-general-staff
