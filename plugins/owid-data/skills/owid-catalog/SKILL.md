@@ -40,7 +40,7 @@ from owid.catalog import fetch, search
 
 # Fetch chart data by slug — returns a Table (enhanced DataFrame with metadata)
 tb = fetch("life-expectancy")
-print(tb.head().to_csv())
+print(tb.head(30).to_csv())
 
 # Search for charts
 results = search("population")
@@ -48,7 +48,7 @@ print(results.to_frame().to_csv())
 
 # Fetch the top result
 tb = results[0].fetch()
-print(tb.head().to_csv())
+print(tb.head(30).to_csv())
 ```
 
 Run with:
@@ -67,7 +67,7 @@ print(results.to_frame().to_csv())
 
 # Table data → CSV (first rows)
 tb = fetch("life-expectancy")
-print(tb.head(20).to_csv())
+print(tb.head(30).to_csv())
 
 # Variable summary
 print(tb.codebook)
