@@ -8,6 +8,20 @@ allowed-tools:
 
 The `owid-catalog` library provides a unified Python API for discovering and loading OWID datasets. It supports three search kinds: **charts** (published visualizations), **tables** (catalog datasets), and **indicators** (semantic search via embeddings).
 
+Charts have the benefit that they are the most curated and well-documented uses of data - for answering questions about data, these are therefore often better than indicators. One chart can use a single indicator or multiple indicators.
+
+Indicators gives access to our full catalog of timeseries data, with varying levels of curation. Indicators and tables are both structured according to our ETL paths, for example "garden/un/2024-07-12/un_wpp/population#population". The first level is what we call the channel. Channels are levels of curation - the first one is "meadow" which is upstream data as a dataframe. Then comes "garden", where we clean and process the data. At this point, dataframes can have multiple dimensions/indices. Almost all of our data has a time and entity dimension (usually the country), but at the garden level we sometimes have additional dimensions like sex/gender, age groups etc. The final logical channel is "grapher", which is where the data gets optimized for our charting tool grapher that can only deal with two dimensions, time and entity.
+
+When you search for indicators, later stages usually have better metadata and documentation, and so are generally preferable. Meadow is almost never the right choice, but Garden can be useful if the additional dimensionality is beneficial.
+
+Tables are full dataframes for particular datasets, i.e. groups of indicators. The search for those is more primitive and the dataframes are sometimes large (up to hundreds of columns), but if you need multiple indicators from the same dataset, they are a convenient way of getting them together without the need to manually join them later.
+
+Our country names and codes are harmonized so that they can easily be joined by time and entity.
+
+Once you know which indicators or chart data you need, always print the metadata (codebook) to understand the units, sources, and other important information about the data. This is crucial for correct interpretation and analysis.
+
+Suggest to the user to credit the data properly. If there is a Full Citation in the metadata, suggest that. Otherwise, construct a source acknowledgment like this "PROVIDER 1, PROVIDER 2, ... with processing by Our World In Data". For provider, use the "attribution" field if it exists for each origin, or the "producer" as a fallback.
+
 ## Installation
 
 ```bash
@@ -174,7 +188,7 @@ results.set_ui_basic()     # default: shows title, description, URL
 ## Tips
 
 **When to use owid-catalog vs search-charts / fetch-chart-data:**
-- Use owid-catalog when working in Python, when you need column metadata (units, descriptions, sources), or when searching tables/indicators beyond published charts.
+- If you have both skills available, use owid-catalog when working in Python, when you need column metadata (units, descriptions, sources), or when searching tables/indicators beyond published charts.
 - Use the HTTP-based search-charts and fetch-chart-data skills for quick lookups without Python, or in language-agnostic workflows.
 
 **Integration with owid-grapher-py (create-chart skill):**
