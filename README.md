@@ -44,11 +44,9 @@ Skills:
 
 ### owid-data
 
-Advanced skills for working with Our World In Data. Requires Python tooling (`uv`, `owid-catalog`, `owid-grapher-py`).
+Skills for working with Our World In Data. Requires Python tooling (`uv`, `owid-catalog`).
 
 Skills:
-- **create-chart** — Create interactive OWID-style charts using `owid-grapher-py` (Jupyter notebooks, HTML, PNG, SVG)
-- **datasette-public** — Query the OWID public Datasette to explore metadata about indicators, datasets, charts, and entities via SQL
 - **owid-catalog** — Access OWID's published datasets via the `owid-catalog` Python library (search charts, tables, and indicators; returns metadata-rich DataFrames)
 
 ### owid-general-staff
@@ -57,6 +55,7 @@ Skills that are only useful for Our World In Data staff members because they req
 
 Skills:
 - **datasette** — Query OWID's internal datasette instance (MySQL database mirror and analytics data store) via SQL
+- **create-chart** — Create interactive OWID-style charts using `owid-grapher-py` (Jupyter notebooks, HTML, PNG, SVG)
 
 ## Development
 

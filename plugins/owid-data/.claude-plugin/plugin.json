@@ -1,7 +1,7 @@
 {
     "name": "owid-data",
-    "description": "Advanced skills for working with Our World In Data. Includes creating charts, accessing indicators directly via owid-catalog, and querying the public datasette.",
-    "version": "0.1.8",
+    "description": "Skills for working with Our World In Data. Includes accessing published datasets directly via the owid-catalog Python library.",
+    "version": "0.1.9",
     "author": {
         "name": "Daniel Bachler",
         "email": "daniel.bachler@ourworldindata.org"
