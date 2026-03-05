@@ -23,6 +23,38 @@ curl -sSL https://raw.githubusercontent.com/owid/owid-claude-plugins/main/instal
 - You can verify that a plugin is loaded by running `/plugin` and checking the `installed plugins` tab, or by just asking claude something like "Which skills are currently loaded?"
 - Tools should trigger automatically when they are useful (e.g. if you ask for fetching data with the `owid-data-web` plugin activated). You can also explicitly trigger them with as `/plugin-name:skill-name` - for example "Fetch the data for https://ourworldindata.org/grapher/life-expectancy - use /owid-data-web:fetch-chart-data"
 
+## Using these skills with other coding agents (pi, codex, etc.)
+
+Some coding agents do not support Claude plugins, but they do support loading skills from:
+
+- `~/.agents/skills/` (user-level)
+- `./.agents/skills/` (project-level)
+
+For this workflow, clone this repository locally and run:
+
+```bash
+./manage-agent-skills.py
+```
+
+The script:
+
+- updates the repository from `origin/main` first (to pull the latest skills)
+- opens a simple two-pane TUI:
+  - left: plugins and their skills, with install status indicators
+  - right: description of the selected plugin or skill
+- installs skills by creating symlinks from this repo into either:
+  - `~/.agents/skills/` (user)
+  - `./.agents/skills/` (project)
+
+Keybindings in the TUI:
+
+- `u` → install selected skill(s) to user scope
+- `p` → install selected skill(s) to project scope
+- `d` → uninstall selected skill(s) from both scopes
+- `q` → quit
+
+The script uses `uv` and will auto-install Python dependencies declared in the script header when needed.
+
 ## Available plugins
 
 ### owid-general
