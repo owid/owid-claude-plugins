@@ -21,7 +21,39 @@ curl -sSL https://raw.githubusercontent.com/owid/owid-claude-plugins/main/instal
     2. In the current project for all users - choose this if you work on this project with other people and the skills should be available for everyone working on this project
     3. In the current project only for you - choose this if you want the skills available only for you and only in this project
 - You can verify that a plugin is loaded by running `/plugin` and checking the `installed plugins` tab, or by just asking claude something like "Which skills are currently loaded?"
-- Tools should trigger automatically when they are useful (e.g. if you ask for fetching data with the `owid-data` plugin activated). You can also explicitly trigger them with as `/plugin-name:skill-name` - for example "Fetch the data for https://ourworldindata.org/grapher/life-expectancy - use /owid-data:fetch-chart-data"
+- Tools should trigger automatically when they are useful (e.g. if you ask for fetching data with the `owid-data-web` plugin activated). You can also explicitly trigger them with as `/plugin-name:skill-name` - for example "Fetch the data for https://ourworldindata.org/grapher/life-expectancy - use /owid-data-web:fetch-chart-data"
+
+## Using these skills with other coding agents (pi, codex, etc.)
+
+Some coding agents do not support Claude plugins, but they do support loading skills from:
+
+- `~/.agents/skills/` (user-level)
+- `./.agents/skills/` (project-level)
+
+For this workflow, clone this repository locally and run:
+
+```bash
+./manage-agent-skills.py
+```
+
+The script:
+
+- updates the repository from `origin/main` first (to pull the latest skills)
+- opens a simple two-pane TUI:
+  - left: plugins and their skills, with install status indicators
+  - right: description of the selected plugin or skill
+- installs skills by creating symlinks from this repo into either:
+  - `~/.agents/skills/` (user)
+  - `./.agents/skills/` (project)
+
+Keybindings in the TUI:
+
+- `u` → install selected skill(s) to user scope
+- `p` → install selected skill(s) to project scope
+- `d` → uninstall selected skill(s) from both scopes
+- `q` → quit
+
+The script uses `uv` and will auto-install Python dependencies declared in the script header when needed.
 
 ## Available plugins
 
@@ -33,16 +65,20 @@ Skills:
 - **duckdb** — Use the DuckDB CLI for ad-hoc data analysis from CSV, Parquet, or NDJSON files
 - **uv** — Manage Python scripts and dependencies with `uv` instead of `pip` or `python`
 
-### owid-data
+### owid-data-web
 
-Skills for working with data from Our World In Data. Teaches Claude Code to search our collection of charts, download the data powering a given chart, create charts, query our public datasette, and join our data with other data sources.
+Lightweight skills for working with Our World In Data chart data directly via the web. Requires `curl`, `jq`, and `duckdb`.
 
 Skills:
 - **search-charts** — Search for OWID charts by keyword using Algolia
 - **fetch-chart-data** — Download data and metadata for a specific chart
-- **create-chart** — Create interactive OWID-style charts using `owid-grapher-py` (Jupyter notebooks, HTML, PNG, SVG)
-- **datasette-public** — Query the OWID public Datasette to explore metadata about indicators, datasets, charts, and entities via SQL
 - **joining-data** — Join OWID data with external sources (e.g. for per-capita metrics or scatter plots vs GDP)
+
+### owid-data
+
+Skills for working with Our World In Data. Requires Python tooling (`uv`, `owid-catalog`).
+
+Skills:
 - **owid-catalog** — Access OWID's published datasets via the `owid-catalog` Python library (search charts, tables, and indicators; returns metadata-rich DataFrames)
 
 ### owid-general-staff
@@ -51,6 +87,7 @@ Skills that are only useful for Our World In Data staff members because they req
 
 Skills:
 - **datasette** — Query OWID's internal datasette instance (MySQL database mirror and analytics data store) via SQL
+- **create-chart** — Create interactive OWID-style charts using `owid-grapher-py` (Jupyter notebooks, HTML, PNG, SVG)
 
 ## Development
 

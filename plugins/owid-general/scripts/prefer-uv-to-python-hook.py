@@ -1,4 +1,4 @@
-#!/usr/bin/env -S uv run --script
+#!/usr/bin/env python3
 """
 Claude Code Hook: Pre-Bash Command Validator.
 
@@ -6,12 +6,17 @@ Validates bash commands before execution.
 """
 
 import json
+import shutil
 import sys
 
 
 def validate_before_execution(command: str) -> list[str]:
     """Validate bash command before execution."""
     issues = []
+
+    # If uv is not installed, don't block commands that would otherwise require it.
+    if shutil.which("uv") is None:
+        return issues
 
     if command.startswith("python"):
         issues.append("Please use `uv run python ...`")
