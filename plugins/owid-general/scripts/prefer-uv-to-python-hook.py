@@ -36,11 +36,22 @@ def main():
     # Validate the command
     issues = validate_before_execution(command)
 
-    # Output the decision
+    # Output the decision using hookSpecificOutput format required by PreToolUse
     if issues:
-        result = {"decision": "block", "reason": "\n".join(issues)}
+        result = {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "deny",
+                "permissionDecisionReason": "\n".join(issues),
+            }
+        }
     else:
-        result = {"decision": "allow"}
+        result = {
+            "hookSpecificOutput": {
+                "hookEventName": "PreToolUse",
+                "permissionDecision": "allow",
+            }
+        }
 
     print(json.dumps(result))
 
