@@ -57,29 +57,29 @@ The script uses `uv` and will auto-install Python dependencies declared in the s
 
 ## Available plugins
 
-### owid-general
-
-General purpose instructions that we find useful at Our World In Data across projects, regardless of programming language. For example there is a skill that tells agents to use `uv` instead of system `python` for running python code and managing dependencies or instructions to use `duckdb`.
-
-Skills:
-- **duckdb** — Use the DuckDB CLI for ad-hoc data analysis from CSV, Parquet, or NDJSON files
-- **uv** — Manage Python scripts and dependencies with `uv` instead of `pip` or `python`
-
-### owid-data-web
-
-Lightweight skills for working with Our World In Data chart data directly via the web. Requires `curl`, `jq`, and `duckdb`.
-
-Skills:
-- **search-charts** — Search for OWID charts by keyword using Algolia
-- **fetch-chart-data** — Download data and metadata for a specific chart
-- **joining-data** — Join OWID data with external sources (e.g. for per-capita metrics or scatter plots vs GDP)
-
 ### owid-data
 
 Skills for working with Our World In Data. Requires Python tooling (`uv`, `owid-catalog`).
 
 Skills:
 - **owid-catalog** — Access OWID's published datasets via the `owid-catalog` Python library (search charts, tables, and indicators; returns metadata-rich DataFrames)
+
+### owid-general
+
+General purpose instructions that we find useful at Our World In Data across projects, regardless of programming language. For example there is a skill that tells agents to use `uv` instead of system `python` for running python code and managing dependencies or instructions to use `duckdb`.
+
+Skills:
+- **uv** — Manage Python scripts and dependencies with `uv` instead of `pip` or `python`
+- **duckdb** — Use the DuckDB CLI for ad-hoc data analysis from CSV, Parquet, or NDJSON files
+
+### owid-data-web
+
+Lightweight skills for working with Our World In Data chart data directly via the web. Requires `curl`, `jq`, and `duckdb`. Useful when python is not available or to integrate owid data into webapps or non-python programming languages.
+
+Skills:
+- **search-charts** — Search for OWID charts by keyword using Algolia
+- **fetch-chart-data** — Download data and metadata for a specific chart
+- **joining-data** — Join OWID data with external sources (e.g. for per-capita metrics or scatter plots vs GDP)
 
 ### owid-general-staff
 

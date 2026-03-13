@@ -163,6 +163,8 @@ Table endpoints support column filtering with `?column__operator=value` syntax:
 - The datasette instance mirrors data periodically — it may not reflect the very latest changes to the production database.
 - Only `SELECT` statements are allowed. `INSERT`, `UPDATE`, `DELETE`, and `PRAGMA` are rejected.
 - Use `_size=max` to get up to 1000 rows in a single JSON response.
+- The `grapher_configs` table in the private database contains our chart config JSON blobs. If you need to understand the structure of these, fetch the json schema from https://files.ourworldindata.org/schemas/grapher-schema.latest.json for reference.
+
 
 ## Example Queries
 
