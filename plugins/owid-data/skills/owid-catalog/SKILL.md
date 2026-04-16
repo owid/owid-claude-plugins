@@ -3,6 +3,7 @@ name: "owid-catalog"
 description: "Access Our World In Data's published datasets using the owid-catalog Python library. Provides a unified Python API for searching and fetching chart data, catalog tables, and indicators — returning enhanced pandas DataFrames with metadata. Use this as a Python-native alternative to the HTTP-based search-charts and fetch-chart-data skills."
 allowed-tools:
 - "Bash(uv:*)"
+- "Bash(pip:*)"
 - "Read"
 ---
 
@@ -30,6 +31,27 @@ Once you know which indicators or chart data you need, always print the metadata
 
 Suggest to the user to credit the data properly. If there is a Full Citation in the metadata, suggest that. Otherwise, construct a source acknowledgment like this "PROVIDER 1, PROVIDER 2, ... with processing by Our World In Data". For provider, use the "attribution" field if it exists for each origin, or the "producer" as a fallback.
 
+## Installation
+
+If `uv` is available (preferred), use inline script dependencies — no separate install step needed:
+
+```python
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["owid-catalog"]
+# ///
+```
+
+Run with:
+```bash
+uv run --no-project script.py
+```
+
+If `uv` is not available, install with pip:
+```bash
+pip install owid-catalog
+```
+
 ## Quick Start
 
 ```python
@@ -51,11 +73,6 @@ print(results.to_frame().head(30).to_csv())
 # Fetch the top result
 tb = results[0].fetch()
 print(tb.head(30).to_csv())
-```
-
-Run with:
-```bash
-uv run --no-project script.py
 ```
 
 ## Important: LLM-Friendly Output
