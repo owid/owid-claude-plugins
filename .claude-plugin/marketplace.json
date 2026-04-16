@@ -1,7 +1,8 @@
 {
     "name": "owid-claude-plugins",
     "metadata": {
-        "description": "A collection of tools and plugins developed by Our World In Data for working with data from Our World In Data."
+        "description": "A collection of tools and plugins developed by Our World In Data for working with data from Our World In Data.",
+        "pluginRoot": "./plugins"
     },
     "owner": {
         "name": "Our World In Data",
@@ -10,19 +11,35 @@
     "plugins": [
         {
             "name": "owid-general",
-            "source": "./plugins/owid-general"
+            "source": "./plugins/owid-general",
+            "skills": [
+                "./plugins/owid-general/skills/uv",
+                "./plugins/owid-general/skills/duckdb"
+            ]
         },
         {
             "name": "owid-data-web",
-            "source": "./plugins/owid-data-web"
+            "source": "./plugins/owid-data-web",
+            "skills": [
+                "./plugins/owid-data-web/skills/search-charts",
+                "./plugins/owid-data-web/skills/fetch-chart-data",
+                "./plugins/owid-data-web/skills/joining-data"
+            ]
         },
         {
             "name": "owid-data",
-            "source": "./plugins/owid-data"
+            "source": "./plugins/owid-data",
+            "skills": [
+                "./plugins/owid-data/skills/owid-catalog"
+            ]
         },
         {
             "name": "owid-general-staff",
-            "source": "./plugins/owid-general-staff"
+            "source": "./plugins/owid-general-staff",
+            "skills": [
+                "./plugins/owid-general-staff/skills/datasette",
+                "./plugins/owid-general-staff/skills/create-chart"
+            ]
         }
     ]
 }

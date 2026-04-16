@@ -1,4 +1,5 @@
 ---
+name: "uv"
 description: We always use `uv` for running python scripts (both standalone and complex python projects) and managing python dependencies. Always use this instead of running system `python`, `python3`, `pip` or `pip3`
 globs:
   - "*.py"

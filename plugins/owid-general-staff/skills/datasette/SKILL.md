@@ -1,8 +1,11 @@
 ---
+name: "datasette"
 description: Access Our World In Data's internal datasette instance to query data from our main MySQL database mirror and analytics data store. Use this when you need to look up or explore data from our internal infrastructure. Does not contain any timeseries data i.e. this does not help to answer questions about data like "what is the life expectancy in Nigeria?". Instead, it is useful for questions like "how many published charts do we have?" or "get the title for all views for a multidim".
 allowed-tools:
   - "Bash(curl:*)"
   - "Bash(jq:*)"
+metadata:
+  internal: true
 ---
 
 # Querying OWID's internal Datasette instance

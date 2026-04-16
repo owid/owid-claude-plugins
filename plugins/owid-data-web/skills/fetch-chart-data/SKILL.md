@@ -1,4 +1,5 @@
 ---
+name: "fetch-chart-data"
 description: "This skill describes how to fetch data for an Our World In Data chart, once the relevant chart URL has been identified. Consult this skill to understand the possible query params to get the best results and to understand the response. Use it you need to fetch data and have already identified the relevant chart URL."
 allowed-tools:
 - "Bash(curl:*)"
