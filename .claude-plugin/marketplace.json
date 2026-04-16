@@ -14,8 +14,7 @@
             "source": "./plugins/owid-general",
             "skills": [
                 "./plugins/owid-general/skills/uv",
-                "./plugins/owid-general/skills/duckdb",
-                "./plugins/owid-general/skills/dataviz-best-practices"
+                "./plugins/owid-general/skills/duckdb"
             ]
         },
         {
