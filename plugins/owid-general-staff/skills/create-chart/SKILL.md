@@ -9,6 +9,8 @@ allowed-tools:
 - "WebFetch"
 - "Write"
 - "Read"
+metadata:
+  internal: true
 ---
 
 The `owid-grapher-py` library creates interactive charts that look and behave like Our World In Data charts. Charts render in Jupyter notebooks and can be exported to PNG, SVG, or standalone HTML.

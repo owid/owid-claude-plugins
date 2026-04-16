@@ -1,4 +1,5 @@
 ---
+name: "search-charts"
 description: "Our World In Data offers thousands of charts and related data on many important topics - from global population data, energy and electricity, economic data like GDP or poverty, health data like causes of death or prevalence of diseases, to data on democracy, violence and war. This skill describes how to effectively search for charts to either show visually or download the data for."
 allowed-tools:
 - "Bash(curl:*)"

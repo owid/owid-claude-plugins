@@ -1,8 +1,8 @@
 ---
+name: "owid-catalog"
 description: "Access Our World In Data's published datasets using the owid-catalog Python library. Provides a unified Python API for searching and fetching chart data, catalog tables, and indicators — returning enhanced pandas DataFrames with metadata. Use this as a Python-native alternative to the HTTP-based search-charts and fetch-chart-data skills."
 allowed-tools:
 - "Bash(uv:*)"
-- "Bash(python:*)"
 - "Read"
 ---
 
@@ -29,12 +29,6 @@ Our country names and codes are harmonized so that they can easily be joined by 
 Once you know which indicators or chart data you need, always print the metadata (codebook) to bring it into context so you can understand the units, sources, and other important information about the data. This is crucial for correct interpretation and analysis.
 
 Suggest to the user to credit the data properly. If there is a Full Citation in the metadata, suggest that. Otherwise, construct a source acknowledgment like this "PROVIDER 1, PROVIDER 2, ... with processing by Our World In Data". For provider, use the "attribution" field if it exists for each origin, or the "producer" as a fallback.
-
-## Installation
-
-```bash
-uv pip install owid-catalog
-```
 
 ## Quick Start
 
