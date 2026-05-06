@@ -13,32 +13,32 @@
             "name": "owid-general",
             "source": "./plugins/owid-general",
             "skills": [
-                "./plugins/owid-general/skills/uv",
-                "./plugins/owid-general/skills/duckdb"
+                "./skills/uv",
+                "./skills/duckdb"
             ]
         },
         {
             "name": "owid-data-web",
             "source": "./plugins/owid-data-web",
             "skills": [
-                "./plugins/owid-data-web/skills/search-charts",
-                "./plugins/owid-data-web/skills/fetch-chart-data",
-                "./plugins/owid-data-web/skills/joining-data"
+                "./skills/search-charts",
+                "./skills/fetch-chart-data",
+                "./skills/joining-data"
             ]
         },
         {
             "name": "owid-data",
             "source": "./plugins/owid-data",
             "skills": [
-                "./plugins/owid-data/skills/owid-catalog"
+                "./skills/owid-catalog"
             ]
         },
         {
             "name": "owid-general-staff",
             "source": "./plugins/owid-general-staff",
             "skills": [
-                "./plugins/owid-general-staff/skills/datasette",
-                "./plugins/owid-general-staff/skills/create-chart"
+                "./skills/datasette",
+                "./skills/create-chart"
             ]
         }
     ]
