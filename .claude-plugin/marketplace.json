@@ -23,7 +23,8 @@
             "skills": [
                 "./skills/search-charts",
                 "./skills/fetch-chart-data",
-                "./skills/joining-data"
+                "./skills/joining-data",
+                "./skills/fact-check-article"
             ]
         },
         {
