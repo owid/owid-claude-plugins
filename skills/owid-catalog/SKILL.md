@@ -210,7 +210,7 @@ results.set_ui_basic()     # default: shows title, description, URL
 - If you have both skills available, use owid-catalog when working in Python, when you need column metadata (units, descriptions, sources), or when searching tables/indicators beyond published charts.
 - Use the HTTP-based search-charts and fetch-chart-data skills for quick lookups without Python, or in language-agnostic workflows.
 
-**Integration with owid-grapher-py (create-chart skill):**
+**Integration with owid-grapher-py (OWID-style interactive charts):**
 ```python
 from owid.catalog import fetch
 from owid.grapher import plot
