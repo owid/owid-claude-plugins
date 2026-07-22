@@ -1,99 +1,89 @@
-This repository contains tools to help with using Our World In Data data and tooling when using Claude Code. For ease of versioning and use across the team, these are structured as plugins containing different skills. The skills themselves might very well be useful for other coding agents as well like OpenAI Codex CLI, but the delivery format is structured around a Claude Code plugin marketplace with multiple plugins.
+# OWID Skills
 
-This project is in an early, experimental stage. Use at your own risk.
+**Agent skills for working with [Our World in Data](https://ourworldindata.org).** Teach your AI coding agent — Claude Code, OpenAI Codex, Gemini CLI, Cursor, GitHub Copilot, and others — to search our charts, download the data behind them, and analyze it correctly.
 
-## Installing and using the plugins
+Our World in Data publishes thousands of charts and datasets on global problems: poverty, health, energy, climate, education, and more. These skills give agents the knowledge to use that data well — the right APIs, the right query parameters, and the caveats that matter (country harmonization, citations, metadata).
+
+> **Status:** early and experimental. Interfaces may change. Feedback and issues are welcome!
+
+## What you can do
+
+Once installed, you can ask your agent things like:
+
+- *"Get life expectancy data for the US and UK since 1950 and plot the trend."*
+- *"Find OWID charts about renewable energy adoption."*
+- *"Download CO₂ emissions per country and compute per-capita values using OWID population data."*
+- *"Make a scatter plot of child mortality against GDP per capita."*
+- *"Fact-check this article against Our World in Data."*
+
+The skills trigger automatically when relevant — you don't need to invoke them by name.
+
+## Skills
+
+Skills follow the open [Agent Skills](https://agentskills.io) format (`SKILL.md`), so they work with any agent that supports the standard.
+
+| Skill | What it does | Requires |
+|---|---|---|
+| [`search-charts`](skills/search-charts/SKILL.md) | Search OWID's published charts by keyword | `curl`, `jq` |
+| [`fetch-chart-data`](skills/fetch-chart-data/SKILL.md) | Download the data and metadata behind any chart | `curl`, `jq` |
+| [`joining-data`](skills/joining-data/SKILL.md) | Join OWID data with external sources (per-capita metrics, scatter plots vs GDP, …) | `duckdb` |
+| [`fact-check-article`](skills/fact-check-article/SKILL.md) | Fact-check an article against OWID data — produces an annotated copy with color-coded verdicts and embedded interactive charts | `curl`, `jq`, `uv` |
+| [`owid-catalog`](skills/owid-catalog/SKILL.md) | Python-native access to the full OWID catalog (charts, tables, indicators) via the [`owid-catalog`](https://pypi.org/project/owid-catalog/) library | `uv` (or `pip`) |
+
+The HTTP-based skills are lightweight and language-agnostic. `owid-catalog` is the richer option when Python is available — it returns metadata-aware DataFrames and covers the full data catalog beyond published charts.
+
+## Installation
+
+### Claude Code
+
+Install as a plugin from the marketplace:
+
+```
+/plugin marketplace add owid/owid-claude-plugins
+/plugin install owid@owid-skills
+```
+
+### Other agents (Codex, Gemini CLI, Cursor, Copilot, …)
+
+Use the [`skills`](https://github.com/vercel-labs/skills) CLI, which installs into the right directory for 75+ agents:
+
+```bash
+npx skills add owid/owid-claude-plugins
+```
+
+### Manual
+
+Any agent that reads the [`.agents/skills`](https://agentskills.io) convention (or its own skills directory) works with a plain copy or symlink:
+
+```bash
+git clone https://github.com/owid/owid-claude-plugins
+cp -r owid-claude-plugins/skills/* ~/.agents/skills/     # user-level
+# or into ./.agents/skills/ inside a project
+```
 
 ### Prerequisites
 
-Some skills or commands may need certain prerequisites installed (e.g. `uv` to run python scripts and manage dependencies). You can either install these manually when a skills fails because of a missing tool (e.g. with `brew install uv`); or you can use this command in your terminal to install all common tools required by skills in this repo:
+The skills use a few common command-line tools: `curl`, `jq`, `duckdb`, and `uv`. Install them with your package manager (e.g. `brew install jq duckdb uv`), or on macOS run:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/owid/owid-claude-plugins/main/install-prerequisites-macos.sh | bash
 ```
 
-### Installation
+## Using the data
 
-- In Claude Code, use `/plugin marketplace add owid/owid-claude-plugins`.
-- Run `/plugin` and tab to marketplaces, then select `owid-claude-plugins`.
-- Browse the available plugins and install the ones you want. Claude will ask you for the scope that you want to install these in:
-    1. You as a user - choose this if you want claude to know about a given skill regardless of which project you are working in
-    2. In the current project for all users - choose this if you work on this project with other people and the skills should be available for everyone working on this project
-    3. In the current project only for you - choose this if you want the skills available only for you and only in this project
-- You can verify that a plugin is loaded by running `/plugin` and checking the `installed plugins` tab, or by just asking claude something like "Which skills are currently loaded?"
-- Tools should trigger automatically when they are useful (e.g. if you ask for fetching data with the `owid-data-web` plugin activated). You can also explicitly trigger them with as `/plugin-name:skill-name` - for example "Fetch the data for https://ourworldindata.org/grapher/life-expectancy - use /owid-data-web:fetch-chart-data"
-
-## Using these skills with other coding agents (pi, codex, etc.)
-
-Some coding agents do not support Claude plugins, but they do support loading skills from:
-
-- `~/.agents/skills/` (user-level)
-- `./.agents/skills/` (project-level)
-
-For this workflow, clone this repository locally and run:
-
-```bash
-./manage-agent-skills.py
-```
-
-The script:
-
-- updates the repository from `origin/main` first (to pull the latest skills)
-- opens a simple two-pane TUI:
-  - left: plugins and their skills, with install status indicators
-  - right: description of the selected plugin or skill
-- installs skills by creating symlinks from this repo into either:
-  - `~/.agents/skills/` (user)
-  - `./.agents/skills/` (project)
-
-Keybindings in the TUI:
-
-- `u` → install selected skill(s) to user scope
-- `p` → install selected skill(s) to project scope
-- `d` → uninstall selected skill(s) from both scopes
-- `q` → quit
-
-The script uses `uv` and will auto-install Python dependencies declared in the script header when needed.
-
-## Available plugins
-
-### owid-data
-
-Skills for working with Our World In Data. Requires Python tooling (`uv`, `owid-catalog`).
-
-Skills:
-- **owid-catalog** — Access OWID's published datasets via the `owid-catalog` Python library (search charts, tables, and indicators; returns metadata-rich DataFrames)
-
-### owid-general
-
-General purpose instructions that we find useful at Our World In Data across projects, regardless of programming language. For example there is a skill that tells agents to use `uv` instead of system `python` for running python code and managing dependencies or instructions to use `duckdb`.
-
-Skills:
-- **uv** — Manage Python scripts and dependencies with `uv` instead of `pip` or `python`
-- **duckdb** — Use the DuckDB CLI for ad-hoc data analysis from CSV, Parquet, or NDJSON files
-
-### owid-data-web
-
-Lightweight skills for working with Our World In Data chart data directly via the web. Requires `curl`, `jq`, and `duckdb`. Useful when python is not available or to integrate owid data into webapps or non-python programming languages.
-
-Skills:
-- **search-charts** — Search for OWID charts by keyword using Algolia
-- **fetch-chart-data** — Download data and metadata for a specific chart
-- **joining-data** — Join OWID data with external sources (e.g. for per-capita metrics or scatter plots vs GDP)
-- **fact-check-article** — Fact-check an article against OWID data: highlights checkable statements in a local copy of the article (green/red/yellow/blue verdicts) with embedded interactive charts
-
-### owid-general-staff
-
-Skills that are only useful for Our World In Data staff members because they require access to internal infrastructure or credentials.
-
-Skills:
-- **datasette** — Query OWID's internal datasette instance (MySQL database mirror and analytics data store) via SQL
-- **create-chart** — Create interactive OWID-style charts using `owid-grapher-py` (Jupyter notebooks, HTML, PNG, SVG)
+Data published by Our World in Data is open: it is available under the [Creative Commons BY license](https://ourworldindata.org/faqs#can-i-use-or-reproduce-your-data), and it builds on the work of the original data providers. The skills instruct agents to surface proper citations — please keep them when you publish results.
 
 ## Development
 
-When adding new skills or plugins, consider the following:
-- Split plugins by use-case. `owid-general` should only contain skills etc that are useful for a wide range of team members or other users. Consider adding new plugins when the consumers of this plugin likely have specific needs (e.g. frontend engineers working on the OWID website; or data consumers who want to get data for our charts; or data scientists working on updating data in our ETL)
-- Test your skills/commands/subagents before adding them here. You can start claude code with `claude --debug --plugin-dir PATH-TO-PLUGIN-DIRECTORY` to get a logfile with debugging information and directly loading a plugin without having to go through the market place.
-- Bump plugin versions when you make changes so the update mechanism of Claude Code plugins work properly.
-- When you add scripts, try to keep prerequisites small and use what is already available. If it makes sense to require a specific tool to be installed, add installation of it to ./install-prerequisites-macos.sh
+Want to add or improve a skill? See [AGENTS.md](AGENTS.md) for repo conventions (skill layout, registration, testing). In short:
+
+- Each skill is a directory under `skills/` with a `SKILL.md` (frontmatter `name` must match the directory name).
+- Register new skills in `.claude-plugin/marketplace.json`.
+- Test with `claude plugin validate .` and by loading the plugin directly: `claude --debug --plugin-dir .`
+- Plugins are versionless on purpose: every commit to `main` is a release.
+
+Skills that require OWID-internal infrastructure or credentials live in a separate private repository and are intentionally not published here.
+
+## License
+
+[Apache-2.0](LICENSE)
