@@ -80,6 +80,7 @@ Skills:
 - **search-charts** — Search for OWID charts by keyword using Algolia
 - **fetch-chart-data** — Download data and metadata for a specific chart
 - **joining-data** — Join OWID data with external sources (e.g. for per-capita metrics or scatter plots vs GDP)
+- **fact-check-article** — Fact-check an article against OWID data: highlights checkable statements in a local copy of the article (green/red/yellow/blue verdicts) with embedded interactive charts
 
 ### owid-general-staff
 
