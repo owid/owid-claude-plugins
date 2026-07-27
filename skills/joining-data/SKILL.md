@@ -14,14 +14,14 @@ When joining data from Our World In Data with that of other sources, the followi
 - If external data has ISO alpha-3 codes, use those for joining
 - If external data uses other identifiers (e.g. ISO alpha-2), map them to ISO alpha-3 first
 - OWID uses modern country borders for historical data (e.g. Italy population in 1 CE uses modern Italian borders)
-- Regional aggregates like "Europe" or "Sub-saharan Africa" usually differ between sources - do not join these by name
+- Regional aggregates like "Europe" or "Sub-Saharan Africa" usually differ between sources - do not join these by name
 - When external data lacks a year column, determine the correct year from documentation or ask the user, then join on that year
 ## OWID data that is commonly used for joins
 
 Some data that OWID provides, like population, is especially useful, for example to convert metrics into per-capita data. Recommendations for these are given below. To understand how to download data given a chart url, consult the fetch-chart-data skill.
 
 For population there are two relevant time series.
-- the long-run population numbers, used in the chart https://ourworldindata.org/grapher/population that merges several data sources to provide data from 10.000 BCE to the present (up to one to three years ago). The precise temporal extent can be quickly queried by fetching the metadata for this chart, and reading `$.columns.[0].timespan`
+- the long-run population numbers, used in the chart https://ourworldindata.org/grapher/population that merges several data sources to provide data from 10,000 BCE to the present (up to one to three years ago). The precise temporal extent can be quickly queried by fetching the metadata for this chart, and reading `$.columns.[0].timespan`
 - the UN population data from 1950 with projections up to 2100 (medium scenario) used in the chart https://ourworldindata.org/grapher/population-with-un-projections . Use this if you need years more recent than what is available in the long-run population dataset or for the current or future years.
 
 For GDP per capita, there are similarly two time series:

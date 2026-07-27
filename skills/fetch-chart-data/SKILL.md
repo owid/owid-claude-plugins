@@ -1,6 +1,6 @@
 ---
 name: "fetch-chart-data"
-description: "This skill describes how to fetch data for an Our World In Data chart, once the relevant chart URL has been identified. Consult this skill to understand the possible query params to get the best results and to understand the response. Use it you need to fetch data and have already identified the relevant chart URL."
+description: "This skill describes how to fetch data for an Our World In Data chart, once the relevant chart URL has been identified. Consult this skill to understand the possible query params to get the best results and to understand the response. Use it when you need to fetch data and have already identified the relevant chart URL."
 allowed-tools:
 - "Bash(curl:*)"
 - "Bash(cat:*)"
@@ -60,7 +60,7 @@ export type MetadataColumn = {
     shortUnit?: string
     unit?: string
     timespan?: string // timespan of the data covered in the form `YYYY-YYYY`
-    tolerance?: number // default tolerance for this time series. Data from Our World In Data is sometime sparse for some countries. In these cases, OWID charts use this tolerance threshold to display values on charts from neighboring years up to this limit
+    tolerance?: number // default tolerance for this time series. Data from Our World In Data is sometimes sparse for some countries. In these cases, OWID charts use this tolerance threshold to display values on charts from neighboring years up to this limit
     type?: string // Numeric, Categorical, Ordinal, Integer
     conversionFactor?: number // Conversion factor that was used internally. This is already applied for the data in the csv, don't apply it again
     shortName?: string // short column name that matches the csv column names when the useColumnShortNames query param is set to true

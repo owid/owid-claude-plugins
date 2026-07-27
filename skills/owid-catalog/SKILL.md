@@ -11,7 +11,7 @@ The `owid-catalog` library provides a unified Python API for discovering and loa
 
 Charts have the benefit that they are the most curated and well-documented uses of data - for answering questions about data, these are therefore often better than indicators. One chart can use a single indicator or multiple indicators.
 
-Indicators gives access to our full catalog of timeseries data, with varying levels of curation. Indicators and tables are both structured according to our ETL paths, for example "garden/un/2024-07-12/un_wpp/population#population". The path fragments are:
+Indicators give access to our full catalog of timeseries data, with varying levels of curation. Indicators and tables are both structured according to our ETL paths, for example "garden/un/2024-07-12/un_wpp/population#population". The path fragments are:
 - channel: top-level grouping / stage of curation
 - namespace: often the data provider (who, un, wb), but sometimes a topic area when that’s more useful.
 - version: the dataset “release” identifier. This is the date we released the dataset, not the source
@@ -21,7 +21,7 @@ Indicators gives access to our full catalog of timeseries data, with varying lev
 
 The first level is what we call the channel. Channels are levels of curation - the first one is "meadow" which is upstream data as a dataframe. Then comes "garden", where we clean and process the data. At this point, dataframes can have multiple dimensions/indices and tend to be wide. Almost all of our data has a time and entity dimension (usually the country), but at the garden level we sometimes have additional dimensions like sex/gender, age groups etc. The final logical channel is "grapher", which is where the data gets optimized for our charting tool grapher that can only deal with two dimensions, time and entity and dataframes become long.
 
-When you search for indicators, it is usually either the Grapher or Garden channel that is most useful - which one to choose depends on your needs, especially if you benefit from the additional dimensionality or prefer simple data that is more easy to merge across indicators. Indicator search results are ranked by popularity, i.e. how often they are used in charts, so the top results are usually good choices.
+When you search for indicators, it is usually either the Grapher or Garden channel that is most useful - which one to choose depends on your needs, especially if you benefit from the additional dimensionality or prefer simple data that is easier to merge across indicators. Indicator search results are ranked by popularity, i.e. how often they are used in charts, so the top results are usually good choices.
 
 Tables are full dataframes for particular datasets, i.e. groups of indicators. The search for those is more primitive and the dataframes are sometimes large (up to hundreds of columns), but if you need multiple indicators from the same dataset, they are a convenient way of getting them together without the need to manually join them later.
 

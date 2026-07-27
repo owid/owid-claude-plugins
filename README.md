@@ -39,7 +39,7 @@ The HTTP-based skills are lightweight and language-agnostic. `owid-catalog` is t
 Install as a plugin from the marketplace:
 
 ```
-/plugin marketplace add owid/owid-claude-plugins
+/plugin marketplace add owid/skills
 /plugin install owid@owid-skills
 ```
 
@@ -48,7 +48,7 @@ Install as a plugin from the marketplace:
 Use the [`skills`](https://github.com/vercel-labs/skills) CLI, which installs into the right directory for 75+ agents:
 
 ```bash
-npx skills add owid/owid-claude-plugins
+npx skills add owid/skills
 ```
 
 ### Manual
@@ -56,8 +56,8 @@ npx skills add owid/owid-claude-plugins
 Any agent that reads the [`.agents/skills`](https://agentskills.io) convention (or its own skills directory) works with a plain copy or symlink:
 
 ```bash
-git clone https://github.com/owid/owid-claude-plugins
-cp -r owid-claude-plugins/skills/* ~/.agents/skills/     # user-level
+git clone https://github.com/owid/skills owid-skills
+cp -r owid-skills/skills/* ~/.agents/skills/     # user-level
 # or into ./.agents/skills/ inside a project
 ```
 
@@ -66,7 +66,7 @@ cp -r owid-claude-plugins/skills/* ~/.agents/skills/     # user-level
 The skills use a few common command-line tools: `curl`, `jq`, `duckdb`, and `uv`. Install them with your package manager (e.g. `brew install jq duckdb uv`), or on macOS run:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/owid/owid-claude-plugins/main/install-prerequisites-macos.sh | bash
+curl -sSL https://raw.githubusercontent.com/owid/skills/main/install-prerequisites-macos.sh | bash
 ```
 
 ## Using the data
