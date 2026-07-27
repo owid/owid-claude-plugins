@@ -14,7 +14,6 @@ Once installed, you can ask your agent things like:
 - *"Find OWID charts about renewable energy adoption."*
 - *"Download CO₂ emissions per country and compute per-capita values using OWID population data."*
 - *"Make a scatter plot of child mortality against GDP per capita."*
-- *"Fact-check this article against Our World in Data."*
 
 The skills trigger automatically when relevant — you don't need to invoke them by name.
 
@@ -27,7 +26,6 @@ Skills follow the open [Agent Skills](https://agentskills.io) format (`SKILL.md`
 | [`search-charts`](skills/search-charts/SKILL.md) | Search OWID's published charts by keyword | `curl`, `jq` |
 | [`fetch-chart-data`](skills/fetch-chart-data/SKILL.md) | Download the data and metadata behind any chart | `curl`, `jq` |
 | [`joining-data`](skills/joining-data/SKILL.md) | Join OWID data with external sources (per-capita metrics, scatter plots vs GDP, …) | `duckdb` |
-| [`fact-check-article`](skills/fact-check-article/SKILL.md) | Fact-check an article against OWID data — produces an annotated copy with color-coded verdicts and embedded interactive charts | `curl`, `jq`, `uv` |
 | [`owid-catalog`](skills/owid-catalog/SKILL.md) | Python-native access to the full OWID catalog (charts, tables, indicators) via the [`owid-catalog`](https://pypi.org/project/owid-catalog/) library | `uv` (or `pip`) |
 
 The HTTP-based skills are lightweight and language-agnostic. `owid-catalog` is the richer option when Python is available — it returns metadata-aware DataFrames and covers the full data catalog beyond published charts.
