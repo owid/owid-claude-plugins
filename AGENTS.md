@@ -16,7 +16,7 @@ install-prerequisites-macos.sh  # helper to install CLI tools skills rely on
 2. **Register the skill** in the `skills` array of the `owid` plugin in `.claude-plugin/marketplace.json`. Without this, the skill will not be installable via the marketplace.
 3. Keep skills self-contained and token-efficient: prefer instructing agents to filter/aggregate with `jq`/`duckdb` rather than pulling large responses into context.
 4. Skills must only rely on public OWID endpoints and common CLI tools (`curl`, `jq`, `duckdb`, `uv`). If a new tool is genuinely needed, add it to `install-prerequisites-macos.sh`.
-5. Do **not** add skills that require OWID-internal infrastructure or credentials here — those belong in the private staff repository.
+5. Do **not** add skills that require OWID-internal infrastructure or credentials — this repository is public.
 
 ## Versioning
 
