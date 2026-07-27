@@ -1,8 +1,7 @@
 {
-    "name": "owid-claude-plugins",
+    "name": "owid-skills",
     "metadata": {
-        "description": "A collection of tools and plugins developed by Our World In Data for working with data from Our World In Data.",
-        "pluginRoot": "./plugins"
+        "description": "Agent skills for working with Our World in Data — search our charts, fetch the data behind them, and analyze it."
     },
     "owner": {
         "name": "Our World In Data",
@@ -10,36 +9,17 @@
     },
     "plugins": [
         {
-            "name": "owid-general",
-            "source": "./plugins/owid-general",
-            "skills": [
-                "./skills/uv",
-                "./skills/duckdb"
-            ]
-        },
-        {
-            "name": "owid-data-web",
-            "source": "./plugins/owid-data-web",
+            "name": "owid",
+            "description": "Skills for working with Our World in Data: search published charts, fetch chart data and metadata via the web API, join OWID data with external sources (e.g. per-capita metrics), fact-check articles against OWID data, and access the full data catalog with the owid-catalog Python library.",
+            "source": "./",
+            "strict": false,
+            "license": "Apache-2.0",
             "skills": [
                 "./skills/search-charts",
                 "./skills/fetch-chart-data",
                 "./skills/joining-data",
-                "./skills/fact-check-article"
-            ]
-        },
-        {
-            "name": "owid-data",
-            "source": "./plugins/owid-data",
-            "skills": [
+                "./skills/fact-check-article",
                 "./skills/owid-catalog"
-            ]
-        },
-        {
-            "name": "owid-general-staff",
-            "source": "./plugins/owid-general-staff",
-            "skills": [
-                "./skills/datasette",
-                "./skills/create-chart"
             ]
         }
     ]

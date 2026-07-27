@@ -112,4 +112,4 @@ https://ourworldindata.org/grapher/life-expectancy?tab=map
 
 ## Using Search Results
 
-To fetch either the visual chart or the data, use the url property as is verbatim, including all query params. Consult the fetch-chart-image or fetch-chart-data skills for more details on how best to request either one.
+To fetch the data behind a chart, use the url property as is verbatim, including all query params. Consult the fetch-chart-data skill for more details on how best to request the data and metadata.

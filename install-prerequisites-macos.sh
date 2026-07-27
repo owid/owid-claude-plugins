@@ -1,10 +1,10 @@
 #!/bin/bash
 # This script installs prerequisite tools for skills in this repository.
 # Run it from a terminal like this:
-#   curl -sSL https://raw.githubusercontent.com/owid/owid-skills/main/install-prerequisites-macos.sh | bash
+#   curl -sSL https://raw.githubusercontent.com/owid/owid-claude-plugins/main/install-prerequisites-macos.sh | bash
 set -e
 
-echo "=== OWID macOS Development Tools Installer ==="
+echo "=== OWID Skills prerequisites installer (macOS) ==="
 echo
 
 # Install Homebrew if not installed
@@ -23,13 +23,8 @@ fi
 # Define packages: "package_name:command_name" (command defaults to package name)
 packages=(
     "uv"
-    # "ripgrep-all:rga"
-    "ripgrep:rg"
-    # "pandoc"
     "jq"
-    "gh"
     "duckdb"
-    "claude-code:claude"
 )
 
 # Build list of missing packages
