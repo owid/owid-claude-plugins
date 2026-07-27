@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script installs prerequisite tools for skills in this repository.
 # Run it from a terminal like this:
-#   curl -sSL https://raw.githubusercontent.com/owid/owid-claude-plugins/main/install-prerequisites-macos.sh | bash
+#   curl -sSL https://raw.githubusercontent.com/owid/skills/main/install-prerequisites-macos.sh | bash
 set -e
 
 echo "=== OWID Skills prerequisites installer (macOS) ==="
