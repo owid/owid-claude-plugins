@@ -82,7 +82,7 @@ Want to add or improve a skill? See [AGENTS.md](AGENTS.md) for repo conventions 
 - Test with `claude plugin validate .` and by loading the plugin directly: `claude --debug --plugin-dir .`
 - Plugins are versionless on purpose: every commit to `main` is a release.
 
-Skills that require OWID-internal infrastructure or credentials live in a separate private repository and are intentionally not published here.
+This repository is limited to skills that rely on public OWID endpoints and common CLI tools; skills that require OWID-internal infrastructure or credentials are out of scope.
 
 ## License
 
