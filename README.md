@@ -43,21 +43,27 @@ Install as a plugin from the marketplace:
 
 ### Other agents (Codex, Gemini CLI, Cursor, Copilot, …)
 
-Use the [`skills`](https://github.com/vercel-labs/skills) CLI, which installs into the right directory for 75+ agents:
+These are standard [Agent Skills](https://agentskills.io), read as-is by Codex, Gemini CLI, Cursor, GitHub Copilot, and many other tools — no Claude-specific setup required. The [`skills`](https://github.com/vercel-labs/skills) CLI detects which of your installed agents support skills (75+ supported) and copies them into each one's directory:
 
 ```bash
-npx skills add owid/skills
+npx skills add owid/skills            # into the current project
+npx skills add owid/skills --global   # user-level, across all your projects
 ```
+
+Add `--agent '*'` to install to every supported agent, or `--list` to preview the skills first.
 
 ### Manual
 
-Any agent that reads the [`.agents/skills`](https://agentskills.io) convention (or its own skills directory) works with a plain copy or symlink:
+The skills are plain [Agent Skills](https://agentskills.io) folders, so you can also copy or symlink them into whatever directory your agent reads. Clone the repo:
 
 ```bash
 git clone https://github.com/owid/skills owid-skills
-cp -r owid-skills/skills/* ~/.agents/skills/     # user-level
-# or into ./.agents/skills/ inside a project
 ```
+
+Then put `owid-skills/skills/*` where your agent looks for skills:
+
+- **Per project** — `./.agents/skills/` (the shared convention read by Codex, Cursor, OpenCode, …)
+- **Per user** — your agent's own skills directory, e.g. `~/.codex/skills/`, `~/.gemini/skills/`, or `~/.claude/skills/`
 
 ### Prerequisites
 
