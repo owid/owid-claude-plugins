@@ -6,7 +6,9 @@ This repository publishes **agent skills for working with Our World in Data** (s
 
 ```
 skills/<skill-name>/SKILL.md    # one directory per skill (Agent Skills format)
+skills/<skill-name>/evals/      # that skill's test cases and fixtures
 .claude-plugin/marketplace.json # marketplace + plugin definition
+evals/                          # shared eval harness + playbook (evals/README.md)
 install-prerequisites-macos.sh  # helper to install CLI tools skills rely on
 ```
 
@@ -27,3 +29,20 @@ Plugins here are intentionally **versionless**: `.claude-plugin/marketplace.json
 - Validate the marketplace: `claude plugin validate .`
 - Load the plugin directly in a live session for end-to-end testing: `claude --debug --plugin-dir .`
 - Sanity-check that each skill's frontmatter `name` matches its directory name.
+- Run the contract tests: `./evals/run-contract-tests.sh`. These check that the
+  OWID endpoints and response shapes each `SKILL.md` documents still match what
+  the API returns — the way these skills are most likely to break.
+
+## Evals
+
+Each skill has an `evals/` directory holding its test inputs; the shared harness
+and the playbook live in [evals/README.md](evals/README.md). Two rules:
+
+- **Commit inputs, not outputs.** Test cases and fixtures are source. Everything
+  a run produces goes to `evals/results/`, which is gitignored.
+- **Never reference eval files from a `SKILL.md`.** Skills that route to their
+  own evals spend the user's context budget on test prose.
+
+When you change a skill's `description`, re-run its trigger eval
+(`./evals/run-trigger-eval.py --skill <name>`) — the four skills cover adjacent
+ground, so a description change can quietly steal a sibling's traffic.

@@ -1,0 +1,44 @@
+{
+  "skill_name": "joining-data",
+  "evals": [
+    {
+      "id": 1,
+      "name": "per-capita-conversion",
+      "prompt": "I have plastic-waste.csv with mismanaged plastic waste in tonnes for 2019, keyed by ISO3 code. Convert it to kilograms per person using Our World in Data population figures and give me the ranking.",
+      "expected_output": "A per-capita ranking in kg/person for all 12 countries, joined on ISO3 and the year 2019, with the population source named.",
+      "files": ["evals/fixtures/plastic-waste.csv"],
+      "assertions": [
+        "The join used ISO3 codes and the year 2019, not country names",
+        "All 12 input countries appear in the output",
+        "The unit conversion from tonnes to kilograms was applied (factor of 1000)",
+        "The OWID population chart used is named or linked",
+        "No country silently dropped out of the join without being mentioned"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "iso2-codes-and-aggregate-rows",
+      "prompt": "Plot our survey's trust score against GDP per capita from OWID. The survey is in trust-survey.csv. Use the most recent year where both have data.",
+      "expected_output": "A scatter of trust score vs GDP per capita for the 10 real countries, with the ISO-2 codes mapped to ISO-3 first, and the SSA and EU rows identified as regional aggregates that cannot be joined by code.",
+      "files": ["evals/fixtures/trust-survey.csv"],
+      "assertions": [
+        "The ISO-2 country codes were mapped to ISO-3 before joining",
+        "The SSA and EU rows are flagged as regional aggregates rather than silently dropped or joined as if they were countries",
+        "The chosen year is stated and is a year present in both datasets",
+        "The GDP per capita series used is named (World Bank or Maddison) with a reason for the choice"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "recent-year-needs-un-population",
+      "prompt": "Work out CO2 emissions per person for the G7 countries for the most recent year OWID has emissions data. Use OWID for both sides.",
+      "expected_output": "Per-capita emissions for the seven countries in the latest available emissions year, using the UN population series if the long-run population series does not reach that year.",
+      "assertions": [
+        "The latest available emissions year was determined from the data or metadata rather than assumed",
+        "The population series chosen actually covers that year, and the choice between the long-run and UN series is explained",
+        "All seven G7 countries are present in the result",
+        "Emissions and population came from the same year for every country"
+      ]
+    }
+  ]
+}

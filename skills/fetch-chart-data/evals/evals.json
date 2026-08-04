@@ -1,0 +1,41 @@
+{
+  "skill_name": "fetch-chart-data",
+  "evals": [
+    {
+      "id": 1,
+      "name": "metadata-first-then-filtered-csv",
+      "prompt": "Pull the data behind https://ourworldindata.org/grapher/share-electricity-renewables for Germany, France and Spain from 2010 onwards. Save it to data/renewables.csv and tell me what the values actually measure.",
+      "expected_output": "A saved CSV containing only DEU, FRA and ESB rows from 2010 onwards, plus a plain-language description of the indicator and its unit taken from the metadata.",
+      "assertions": [
+        "The metadata JSON was fetched before the CSV",
+        "The CSV request used csvType=filtered with a country filter rather than downloading every country",
+        "The saved file contains only the three requested countries",
+        "The saved file contains no years before 2010",
+        "The stated unit matches the unit field in the metadata",
+        "The full CSV contents were not printed into the response"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "surface-data-caveats",
+      "prompt": "My editor wants a footnote about the limitations of this data before we publish: https://ourworldindata.org/grapher/annual-co2-emissions-per-country. What should it say?",
+      "expected_output": "A footnote grounded in the chart's descriptionKey and descriptionProcessing fields — e.g. that emissions are territorial and exclude international aviation and shipping — plus the citation.",
+      "assertions": [
+        "The response draws on descriptionKey entries from the metadata rather than general knowledge about CO2 accounting",
+        "The citation from the metadata is included",
+        "Any caveat stated can be traced to a field in the metadata response"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "token-discipline-on-a-large-chart",
+      "prompt": "I need life expectancy for every country in 2021 from ourworldindata.org/grapher/life-expectancy, ranked highest to lowest, top 10 and bottom 10.",
+      "expected_output": "Two ranked lists of ten countries each, produced without reading the whole global CSV into context.",
+      "assertions": [
+        "The data was filtered server-side with the time parameter or processed with a tool (jq, duckdb, sort) rather than pasted into the response",
+        "The response contains exactly the top 10 and bottom 10, not the full country list",
+        "Aggregates such as World or continent rows are excluded from the country rankings, or their exclusion is stated"
+      ]
+    }
+  ]
+}

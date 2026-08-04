@@ -1,0 +1,43 @@
+name: Contract tests
+
+# Layer 1 of the eval setup (see evals/README.md): checks that the OWID
+# endpoints and response shapes documented in each SKILL.md still match what the
+# API actually returns. No model in the loop, so it is cheap enough to run on
+# every PR — and on a schedule, because these skills can break without anyone
+# touching this repo.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # 06:00 UTC daily. A failure here usually means the API changed, not that
+    # someone broke the repo.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install duckdb
+        run: |
+          curl -fsSL https://install.duckdb.org | sh
+          echo "$HOME/.duckdb/cli/latest" >> "$GITHUB_PATH"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Run contract tests
+        run: ./evals/run-contract-tests.sh
+
+      - name: Upload responses on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-test-responses
+          path: evals/results/contract/
+          retention-days: 7

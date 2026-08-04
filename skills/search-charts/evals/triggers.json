@@ -1,0 +1,55 @@
+[
+  {
+    "query": "im writing a blog post about whether malaria deaths have actually gone down since 2000 and i need a chart from our world in data to embed — can you find the best one and give me the url with the map tab open",
+    "should_trigger": true,
+    "note": "core case: topic in hand, no url, wants discovery plus a ?tab= url"
+  },
+  {
+    "query": "What does OWID have on energy use per person in sub-Saharan Africa? I'd like to see what charts exist before I commit to one for our briefing deck.",
+    "should_trigger": true,
+    "note": "formal phrasing, explicitly wants to survey candidates"
+  },
+  {
+    "query": "need to find owid data on democracy over time but im not sure what they call it, something about regime type maybe? vocabulary is probably not what i'd guess",
+    "should_trigger": true,
+    "note": "tests the search-tips guidance about OWID's specialist vocabulary"
+  },
+  {
+    "query": "find the our world in data chart on the share of population living in extreme poverty, and list the top few candidates with their titles and subtitles so I can pick the right one",
+    "should_trigger": true,
+    "note": "explicitly asks for the 'communicate top hits back' behaviour"
+  },
+  {
+    "query": "can you pull up owid's child mortality chart as a scatter against gdp per capita if that view exists, otherwise just the line chart",
+    "should_trigger": true,
+    "note": "requires reading availableTabs before constructing the url"
+  },
+  {
+    "query": "grab the csv behind https://ourworldindata.org/grapher/life-expectancy for the USA and the UK from 2000 to 2020 and save it to data/le.csv",
+    "should_trigger": false,
+    "expected_skill": "fetch-chart-data",
+    "note": "url already known — discovery is not needed"
+  },
+  {
+    "query": "in a python script, load OWID life expectancy data into a dataframe with the units and source metadata attached so I can plot it with matplotlib",
+    "should_trigger": false,
+    "expected_skill": "owid-catalog",
+    "note": "python-native path with metadata requirement"
+  },
+  {
+    "query": "i have a csv of national forest area in km2 keyed by iso3 code and i want to turn it into forest area per person using owid population numbers",
+    "should_trigger": false,
+    "expected_skill": "joining-data",
+    "note": "per-capita join, not chart discovery"
+  },
+  {
+    "query": "our search page on ourworldindata.org is returning 500s for queries with accented characters — can you look at how the algolia index is configured in the grapher repo?",
+    "should_trigger": false,
+    "note": "near-miss: mentions OWID search and Algolia, but it's a codebase bug"
+  },
+  {
+    "query": "make me a bar chart of our team's sprint velocity from this jira export (jira-q2.csv) — story points per sprint across the last 6 sprints",
+    "should_trigger": false,
+    "note": "near-miss: 'chart' plus a data file, nothing to do with OWID"
+  }
+]
