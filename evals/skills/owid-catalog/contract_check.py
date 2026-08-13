@@ -123,9 +123,22 @@ def main() -> int:
         ("indicator results convert to a DataFrame", lambda: not indicators.to_frame().empty),
         ("an indicator result can .fetch() a single column", lambda: _nonempty(indicators[0].fetch())),
         ("an indicator result can .fetch_table()", lambda: _nonempty(indicators[0].fetch_table())),
+        # search() takes no sort argument; sorting happens on the returned
+        # ResponseSet, keyed by a field of the result.
         (
-            "sort_by='relevance' is accepted",
-            lambda: search("CO2 emissions per capita", kind="indicator", sort_by="relevance") is not None,
+            "search() rejects a sort_by argument",
+            lambda: _raises(
+                TypeError,
+                lambda: search("CO2 emissions per capita", kind="indicator", sort_by="relevance"),
+            ),
+        ),
+        (
+            "indicator results expose score, popularity and n_charts",
+            lambda: {"score", "popularity", "n_charts"} <= set(indicators.to_frame(all_fields=True).columns),
+        ),
+        *(
+            (f"indicator results re-sort by {key!r}", lambda k=key: indicators.sort_by(k, reverse=True) is not None)
+            for key in ("score", "popularity", "n_charts")
         ),
     ]
     reason = "SKIP_SLOW=1" if skip_slow else "indicator search did not return results"
@@ -142,6 +155,17 @@ def _import() -> bool:
     from owid.catalog import fetch, search  # noqa: F401
 
     return True
+
+
+def _raises(exc_type: type[BaseException], fn: Callable[[], Any]) -> bool:
+    """True if fn raises exc_type. Used to pin down what the API refuses, so a
+    SKILL.md example cannot drift back into calling an argument that never
+    existed."""
+    try:
+        fn()
+    except exc_type:
+        return True
+    return False
 
 
 def _nonempty(obj: Any) -> Any:

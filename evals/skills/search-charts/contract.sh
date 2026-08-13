@@ -39,10 +39,14 @@ if fetch "$API?q=energy&hitsPerPage=50" "$BROAD"; then
     jq_true "every type is one of the documented ChartRecordType values" "$BROAD" \
         '[.results[].type] | unique | inside(["chart", "explorerView", "multiDimView"])'
 
-    # SKILL.md's BaseSearchChartHit marks objectID as required. If this fails,
-    # the schema in SKILL.md is stale — the field is not worth documenting.
-    all_match "objectID is present on every hit (documented as required)" "$BROAD" \
+    # BaseSearchChartHit must not document fields the API never sends: an agent
+    # that branches on one will always take the wrong branch.
+    none_match "objectID is absent, as the schema now reflects" "$BROAD" \
         '.results[]' 'has("objectID")'
+    all_match "every hit has publishedAt and updatedAt" "$BROAD" '.results[]' \
+        'has("publishedAt") and has("updatedAt")'
+    all_match "publishedAt and updatedAt are ISO 8601 timestamps" "$BROAD" '.results[]' \
+        '(.publishedAt | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T")) and (.updatedAt | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T"))'
 fi
 
 section "Non-chart record types"
@@ -57,11 +61,17 @@ if fetch "$API?q=life+expectancy&hitsPerPage=100" "$NONCHART"; then
     all_match "non-chart hits carry queryParams" "$NONCHART" \
         '.results[] | select(.type != "chart")' 'has("queryParams")'
 
-    # SKILL.md marks explorerType required on SearchExplorerViewHit, and
-    # chartConfigId required on SearchMultiDimViewHit.
-    all_match "explorerView hits carry explorerType (documented as required)" "$NONCHART" \
+    all_match "non-chart hits carry containerTitle" "$NONCHART" \
+        '.results[] | select(.type != "chart")' 'has("containerTitle")'
+    none_match "containerTitle is absent on plain chart hits" "$NONCHART" \
+        '.results[] | select(.type == "chart")' 'has("containerTitle")'
+
+    # explorerType and chartConfigId were documented as required until this
+    # change corrected the schema. Keep asserting their absence so they cannot
+    # creep back into the docs without the API actually sending them.
+    none_match "explorerView hits have no explorerType, as the schema now reflects" "$NONCHART" \
         '.results[] | select(.type == "explorerView")' 'has("explorerType")'
-    all_match "multiDimView hits carry chartConfigId (documented as required)" "$NONCHART" \
+    none_match "multiDimView hits have no chartConfigId, as the schema now reflects" "$NONCHART" \
         '.results[] | select(.type == "multiDimView")' 'has("chartConfigId")'
 fi
 

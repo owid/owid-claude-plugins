@@ -156,8 +156,11 @@ print(results.to_frame().head(30).to_csv())
 # Get all fields for deeper inspection
 print(results.to_frame(all_fields=True).head(30).to_csv())
 
-# Sort by relevance (default) or similarity
-results = search("CO2 emissions per capita", kind="indicator", sort_by="relevance")
+# Results arrive sorted by semantic similarity (the `score` field), with
+# `popularity` breaking ties. `search()` takes no sort argument — re-sort the
+# returned ResponseSet instead, using any field of the result:
+results = search("CO2 emissions per capita", kind="indicator")
+results = results.sort_by("popularity", reverse=True)  # or "score", "n_charts"
 
 # Fetch indicator data
 tb = results[0].fetch()        # single-column indicator

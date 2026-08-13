@@ -23,13 +23,7 @@ export enum ChartRecordType {
     MultiDimView = "multiDimView",
 }
 
-export enum ExplorerType {
-    Grapher = "grapher",
-    Indicator = "indicator",
-    Csv = "csv",
-}
-
-type GrapherTabName = "LineChart" | "ScatterPlot" | "StackedArea" | "DiscreteBar" | "StackedDiscreteBar" | "SlopeChart" | "StackedBar" | "Marimekko" | "Table" | "WorldMap"
+type GrapherTabName = "LineChart" | "ScatterPlot" | "StackedArea" | "DiscreteBar" | "StackedDiscreteBar" | "SlopeChart" | "StackedBar" | "Marimekko" | "Dumbbell" | "Table" | "WorldMap"
 
 interface BaseSearchChartHit {
     url: string
@@ -37,10 +31,11 @@ interface BaseSearchChartHit {
     slug: string
     availableEntities: string[]
     originalAvailableEntities?: string[]
-    objectID: string
     variantName?: string
     subtitle?: string
     availableTabs: GrapherTabName[]
+    publishedAt: string // ISO 8601 timestamp
+    updatedAt: string // ISO 8601 timestamp
 }
 
 type SearchChartViewHit = BaseSearchChartHit & {
@@ -49,14 +44,14 @@ type SearchChartViewHit = BaseSearchChartHit & {
 
 type SearchExplorerViewHit = BaseSearchChartHit & {
     type: ChartRecordType.ExplorerView
-    explorerType: ExplorerType
     queryParams: string
+    containerTitle: string // title of the explorer this view belongs to
 }
 
 type SearchMultiDimViewHit = BaseSearchChartHit & {
     type: ChartRecordType.MultiDimView
     queryParams: string
-    chartConfigId: string
+    containerTitle: string // title of the multi-dimensional chart this view belongs to
 }
 
 export type SearchChartHit =
@@ -104,6 +99,8 @@ The `availableTabs` field indicates what visualizations a chart supports. Use th
 | `ScatterPlot` | `scatter` | Scatter plot |
 | `StackedArea` | `stacked-area` | Stacked area chart |
 | `StackedBar` | `stacked-bar` | Stacked bar chart |
+| `StackedDiscreteBar` | `stacked-discrete-bar` | Stacked bar chart for a single time point |
+| `Dumbbell` | `dumbbell` | Dumbbell chart comparing two values per entity |
 
 To display a specific visualization, append `?tab=<value>` to the chart URL. For example:
 ```
