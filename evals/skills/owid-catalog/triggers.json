@@ -12,7 +12,7 @@
   {
     "query": "does owid have population broken down by sex and age group? the grapher charts only seem to give me totals and i need the extra dimensions for a cohort model",
     "should_trigger": true,
-    "note": "the garden vs grapher channel distinction is the answer"
+    "note": "the garden vs grapher channel distinction is the answer. Deliberately hard: it opens with 'does owid have', which reads as chart discovery, and the owid-catalog tells (extra dimensions, cohort model) only arrive later. It misrouted to search-charts 3/3 before the descriptions were rewritten."
   },
   {
     "query": "write a uv script that pulls owid renewable energy share, resamples to 5-year means per country, and writes the result to renewables_5yr.parquet",
@@ -20,12 +20,12 @@
     "note": "python analysis pipeline, casual about which OWID access path"
   },
   {
-    "query": "semantic search would help here — i want owid indicators about 'how much people trust their government', i doubt those exact words are in any title",
+    "query": "semantic search would help here \u2014 i want owid indicators about 'how much people trust their government', i doubt those exact words are in any title",
     "should_trigger": true,
     "note": "embedding search is the documented differentiator"
   },
   {
-    "query": "quick one — what's the URL of the OWID chart on internet users as a share of population?",
+    "query": "quick one \u2014 what's the URL of the OWID chart on internet users as a share of population?",
     "should_trigger": false,
     "expected_skill": "search-charts",
     "note": "a lookup, no python needed"
@@ -37,7 +37,7 @@
     "note": "explicitly language-agnostic and url-based"
   },
   {
-    "query": "pip install owid-catalog is failing on python 3.9 in our CI — can you look at the version constraints in pyproject.toml and figure out what's incompatible",
+    "query": "pip install owid-catalog is failing on python 3.9 in our CI \u2014 can you look at the version constraints in pyproject.toml and figure out what's incompatible",
     "should_trigger": false,
     "note": "near-miss: names the library, but it's a packaging problem"
   },
