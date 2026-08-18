@@ -17,7 +17,8 @@ help: ## List the available targets
 	@grep -hE '^[a-z][a-z-]*:.*## ' $(MAKEFILE_LIST) \
 	  | awk -F':.*## ' '{printf "  \033[1m%-9s\033[0m %s\n", $$1, $$2}'
 	@echo
-	@echo "  Add SKILL=<name> to test or triggers to run a single skill."
+	@echo "  test/triggers take SKILL=<name>. triggers also takes RUNS=<n>,"
+	@echo "  MODEL=<id> and EFFORT=<low|medium|high>, which is where the cost is."
 
 validate: ## Check spec conformance, the plugin manifest and marketplace registration
 	@# Spec conformance, per skill, using the validator the spec itself recommends.
@@ -67,7 +68,10 @@ test: ## Contract tests: do the OWID endpoints still match what the skills docum
 	@./evals/run-contract-tests.sh $(SKILL)
 
 triggers: ## Trigger evals: does the right skill fire? (needs the claude CLI, costs tokens)
-	@./evals/run-trigger-eval.py $(if $(SKILL),--skill $(SKILL),--all)
+	@# Cost scales as queries x RUNS x skills. While iterating on a description, pin
+	@# SKILL and RUNS=1; use the defaults for a measurement you intend to record.
+	@./evals/run-trigger-eval.py $(if $(SKILL),--skill $(SKILL),--all) \
+	  $(if $(RUNS),--runs $(RUNS),) $(if $(MODEL),--model $(MODEL),) $(if $(EFFORT),--effort $(EFFORT),)
 
 clean: ## Delete eval run outputs (evals/results/)
 	@rm -rf evals/results

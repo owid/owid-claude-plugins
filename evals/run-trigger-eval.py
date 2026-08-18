@@ -61,7 +61,7 @@ def load_queries(skill: str) -> list[dict]:
     return data
 
 
-def build_command(query: str, model: str | None) -> list[str]:
+def build_command(query: str, model: str | None, effort: str, max_budget: float | None) -> list[str]:
     cmd = [
         "claude",
         "-p",
@@ -73,9 +73,18 @@ def build_command(query: str, model: str | None) -> list[str]:
         "--verbose",
         "--allowed-tools",
         ALLOWED_TOOLS,
+        # Routing is a shallow decision the model makes before doing any work, so
+        # thinking tokens are pure waste here. Raise this for a fidelity run that
+        # should match a real session's effort.
+        "--effort",
+        effort,
     ]
     if model:
         cmd += ["--model", model]
+    if max_budget is not None:
+        # Only honoured with --print, which is what -p gives us. Caps the damage
+        # when a query fires nothing and the model answers it in full.
+        cmd += ["--max-budget-usd", str(max_budget)]
     return cmd
 
 
@@ -123,7 +132,7 @@ def skills_in_line(line: str, candidates: list[str]) -> set[str]:
     return found
 
 
-def run_once(query: str, candidates: list[str], timeout: int, model: str | None) -> dict:
+def run_once(query: str, candidates: list[str], args: argparse.Namespace) -> dict:
     """Run one query; return which skills fired, plus whether the run was usable.
 
     "No skill fired" and "the run never happened" look identical from the
@@ -132,6 +141,7 @@ def run_once(query: str, candidates: list[str], timeout: int, model: str | None)
     accuracy on nothing. So a run is only usable if it either observed a routing
     decision or completed cleanly.
     """
+    timeout = args.timeout
     timed_out = False
 
     def kill_on_timeout() -> None:
@@ -141,7 +151,7 @@ def run_once(query: str, candidates: list[str], timeout: int, model: str | None)
 
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
     proc = subprocess.Popen(
-        build_command(query, model),
+        build_command(query, args.model, args.effort, args.max_budget_usd),
         stdin=subprocess.DEVNULL,  # otherwise claude -p waits on stdin before starting
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -227,6 +237,20 @@ def main() -> int:
     parser.add_argument("--timeout", type=int, default=90, help="seconds per run (default: 90)")
     parser.add_argument("--threshold", type=float, default=0.5, help="fire rate counted as a trigger (default: 0.5)")
     parser.add_argument("--model", default=None, help="model for claude -p (default: your configured model)")
+    parser.add_argument(
+        "--effort", default="low", choices=["low", "medium", "high", "xhigh", "max"],
+        help="reasoning effort per run (default: low — routing needs no deep thinking)",
+    )
+    parser.add_argument(
+        "--max-budget-usd", type=float, default=None,
+        help="hard per-run spend cap, e.g. 0.05. Useful because a query that fires nothing "
+             "lets the model answer it in full.",
+    )
+    parser.add_argument(
+        "--min-accuracy", type=float, default=None,
+        help="exit non-zero if accuracy falls below this (default: none — this is a "
+             "measurement, not a gate)",
+    )
     parser.add_argument("--dry-run", action="store_true", help="print the plan and one example command, run nothing")
     args = parser.parse_args()
 
@@ -245,8 +269,9 @@ def main() -> int:
         print(f"\n\033[1m▶ {skill}\033[0m — {len(queries)} queries × {args.runs} runs = {total_runs} runs")
 
         if args.dry_run:
+            cmd = build_command(queries[0]["query"], args.model, args.effort, args.max_budget_usd)
             print("  example command:")
-            print("   ", " ".join(f"'{c}'" if " " in c else c for c in build_command(queries[0]["query"], args.model)))
+            print("   ", " ".join(f"'{c}'" if " " in c else c for c in cmd))
             continue
 
         if not command_exists("claude"):
@@ -255,7 +280,7 @@ def main() -> int:
         results: dict[int, list[dict]] = {i: [] for i in range(len(queries))}
         with ThreadPoolExecutor(max_workers=args.workers) as pool:
             futures = {
-                pool.submit(run_once, q["query"], candidates, args.timeout, args.model): i
+                pool.submit(run_once, q["query"], candidates, args): i
                 for i, q in enumerate(queries)
                 for _ in range(args.runs)
             }
@@ -273,7 +298,13 @@ def main() -> int:
         report = summarize(skill, queries, results, args.threshold)
         write_report(skill, report, results, args)
         print_report(report)
-        if report["summary"]["accuracy"] < 1.0 or report["summary"]["errored_runs"]:
+        summary = report["summary"]
+        if summary["errored_runs"]:
+            # The numbers are not trustworthy, which is a real failure.
+            exit_code = 1
+        elif args.min_accuracy is not None and summary["accuracy"] < args.min_accuracy:
+            print(f"  accuracy {summary['accuracy']:.0%} is below the --min-accuracy floor "
+                  f"of {args.min_accuracy:.0%}")
             exit_code = 1
 
     return exit_code
@@ -365,7 +396,8 @@ def write_report(skill: str, report: dict, results: dict[int, list[dict]], args:
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     out = RESULTS_DIR / skill / stamp
     (out / "transcripts").mkdir(parents=True, exist_ok=True)
-    report["config"] = {"runs": args.runs, "timeout": args.timeout, "model": args.model}
+    report["config"] = {"runs": args.runs, "timeout": args.timeout, "model": args.model,
+                        "effort": args.effort, "max_budget_usd": args.max_budget_usd}
     (out / "report.json").write_text(json.dumps(report, indent=2) + "\n")
     for i, runs in results.items():
         for n, run in enumerate(runs):

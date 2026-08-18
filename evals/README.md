@@ -138,13 +138,35 @@ Run `make lint` before committing: shellcheck for the shell, ruff for the Python
 ## Layer 2 — trigger evals
 
 ```bash
-make triggers SKILL=search-charts
+make triggers SKILL=search-charts                            # one skill
 make triggers                                                # every skill
+make triggers SKILL=owid-catalog RUNS=1                      # cheapest useful loop
+make triggers MODEL=claude-sonnet-5 EFFORT=medium            # override the defaults
 
-# The runner takes flags make does not pass through:
-./evals/run-trigger-eval.py --all --runs 5
 ./evals/run-trigger-eval.py --skill joining-data --dry-run   # print the plan only
+./evals/run-trigger-eval.py --all --max-budget-usd 0.05      # hard per-run spend cap
 ```
+
+**This layer is the expensive one, so size it deliberately.** Cost is
+`queries x RUNS x skills` full `claude -p` sessions — the default `make triggers`
+is 4 x 10 x 3 = 120 of them, each carrying a full system prompt, and a query that
+fires nothing lets the model answer it in full before exiting.
+
+| Knob | Default | Effect |
+|---|---|---|
+| `SKILL=<name>` | all four | 4x fewer runs |
+| `RUNS=<n>` | 3 | 3 runs stabilises a fire rate; 1 is enough while iterating on wording |
+| `EFFORT=<level>` | `low` | routing is decided before any real work, so thinking tokens are waste |
+| `MODEL=<id>` | your session model | see the caveat below |
+| `--max-budget-usd` | unset | hard per-run cap; a cut-off run is reported as an error, not as a negative |
+
+Routing is model-dependent, so a cheaper `MODEL` measures that model's routing,
+not the one your users get. Use it to iterate on description wording quickly, then
+re-measure on the model you actually ship before recording a result.
+
+**Exit status is not a verdict on accuracy.** This is a measurement, not a gate:
+the runner exits non-zero only when runs failed (the numbers are untrustworthy),
+or when you opt into a floor with `--min-accuracy`.
 
 Each query runs through `claude -p` with this repo loaded via `--plugin-dir`, so
 **all four skills are registered at once** — the same situation a real user is
