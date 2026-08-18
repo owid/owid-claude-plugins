@@ -40,6 +40,13 @@ validate: ## Check spec conformance, the plugin manifest and marketplace registr
 	  echo "  x a SKILL.md references eval files - drop the reference or inline the content"; \
 	  exit 1; \
 	else echo "  ok  no SKILL.md references eval files"; fi
+	@# Eval JSON is hand-authored and hand-reviewed, so it must stay readable. A
+	@# python json.dumps without ensure_ascii=False silently rewrites every em dash
+	@# and accent as a \uXXXX escape, which is unreviewable prose.
+	@if grep -rln '\\u[0-9a-fA-F]\{4\}' evals/skills/*/*.json 2>/dev/null; then \
+	  echo "  x the file(s) above contain escaped unicode - rewrite with ensure_ascii=False"; \
+	  exit 1; \
+	else echo "  ok  eval json has no escaped unicode"; fi
 	@# Registration: neither validator above knows about marketplace.json, and an
 	@# unregistered skill is installable by neither route.
 	@fail=0; \
