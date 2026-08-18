@@ -19,6 +19,7 @@ keep for `joining-data` and `owid-catalog`, where the agent does real reasoning.
 ## Layout
 
 ```
+Makefile                                # entry points — what you actually run
 evals/                                  # shared harness (this directory)
 ├── README.md                           # you are here
 ├── lib/assert.sh                       # assertion helpers for contract tests
@@ -45,9 +46,9 @@ every user who triggers the skill.
 ## Layer 1 — contract tests
 
 ```bash
-./evals/run-contract-tests.sh                  # all skills
-./evals/run-contract-tests.sh search-charts    # one skill
-SKIP_SLOW=1 ./evals/run-contract-tests.sh      # skip the slow owid-catalog checks
+make test                                      # all skills
+make test SKILL=search-charts                  # one skill
+SKIP_SLOW=1 make test                          # skip the slow owid-catalog checks
 ```
 
 Exits non-zero if any check fails, so it works as a CI gate; it runs on every PR
@@ -75,8 +76,11 @@ fi
 ## Layer 2 — trigger evals
 
 ```bash
-./evals/run-trigger-eval.py --skill search-charts
-./evals/run-trigger-eval.py --all --runs 3
+make triggers SKILL=search-charts
+make triggers                                                # every skill
+
+# The runner takes flags make does not pass through:
+./evals/run-trigger-eval.py --all --runs 5
 ./evals/run-trigger-eval.py --skill joining-data --dry-run   # print the plan only
 ```
 

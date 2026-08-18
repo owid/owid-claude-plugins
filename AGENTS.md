@@ -5,6 +5,7 @@ This repository publishes **agent skills for working with Our World in Data** (s
 ## Structure
 
 ```
+Makefile                        # entry points: make validate / test / triggers
 skills/<skill-name>/SKILL.md    # one directory per skill (Agent Skills format)
 skills/<skill-name>/evals/      # that skill's test cases and fixtures
 .claude-plugin/marketplace.json # marketplace + plugin definition
@@ -26,12 +27,19 @@ Plugins here are intentionally **versionless**: `.claude-plugin/marketplace.json
 
 ## Testing
 
-- Validate the marketplace: `claude plugin validate .`
-- Load the plugin directly in a live session for end-to-end testing: `claude --debug --plugin-dir .`
-- Sanity-check that each skill's frontmatter `name` matches its directory name.
-- Run the contract tests: `./evals/run-contract-tests.sh`. These check that the
-  OWID endpoints and response shapes each `SKILL.md` documents still match what
-  the API returns — the way these skills are most likely to break.
+Run `make` for the full list. The two you need most:
+
+- `make validate` — validates the marketplace manifest, and checks that every
+  skill's frontmatter `name` matches its directory and that it is registered in
+  `.claude-plugin/marketplace.json`. `claude plugin validate` alone catches
+  neither of the latter two, so run the make target rather than the CLI.
+- `make test` — the contract tests. These check that the OWID endpoints and
+  response shapes each `SKILL.md` documents still match what the API returns —
+  the way these skills are most likely to break. Add `SKILL=<name>` for one
+  skill. This is what CI runs.
+
+For end-to-end testing, load the plugin directly in a live session:
+`claude --debug --plugin-dir .`
 
 ## Evals
 
@@ -44,5 +52,5 @@ and the playbook live in [evals/README.md](evals/README.md). Two rules:
   own evals spend the user's context budget on test prose.
 
 When you change a skill's `description`, re-run its trigger eval
-(`./evals/run-trigger-eval.py --skill <name>`) — the four skills cover adjacent
-ground, so a description change can quietly steal a sibling's traffic.
+(`make triggers SKILL=<name>`) — the four skills cover adjacent ground, so a
+description change can quietly steal a sibling's traffic.
