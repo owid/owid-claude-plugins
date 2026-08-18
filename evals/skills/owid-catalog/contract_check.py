@@ -20,7 +20,8 @@ import os
 import sys
 import time
 import traceback
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 
 def emit(status: str, name: str, detail: str = "") -> None:
@@ -58,7 +59,7 @@ def check(name: str, fn: Callable[[], Any]) -> Any:
 def main() -> int:
     if not check("owid.catalog imports fetch and search", _import):
         return 1
-    from owid.catalog import fetch, search  # noqa: E402
+    from owid.catalog import fetch, search
 
     # --- Charts API -------------------------------------------------------
     tb = check("fetch('life-expectancy') returns a non-empty table", lambda: _nonempty(fetch("life-expectancy")))

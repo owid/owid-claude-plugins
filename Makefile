@@ -5,7 +5,7 @@
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
-.PHONY: help validate test triggers clean
+.PHONY: help validate lint test triggers clean
 
 # The Agent Skills spec's own reference validator. Pinned to 0.1.x because
 # skills-ref is pre-1.0, where a minor bump may change behaviour. Note the
@@ -51,6 +51,17 @@ validate: ## Check spec conformance, the plugin manifest and marketplace registr
 	if [ $$fail -eq 0 ]; then \
 	  echo "  ok  every skill is registered in the marketplace"; \
 	else exit 1; fi
+
+lint: ## Lint the harness: shellcheck for shell, ruff for Python
+	@# --external-sources lets shellcheck follow the dynamic `source "$$EVALS_LIB/..."`.
+	@if command -v uv >/dev/null 2>&1; then \
+	  uvx --quiet --from shellcheck-py shellcheck --severity=warning \
+	    --external-sources --source-path=evals/lib \
+	    evals/lib/assert.sh evals/skills/*/contract.sh evals/run-contract-tests.sh && \
+	  uvx --quiet ruff check --select E,F,W,UP --line-length 130 \
+	    evals/run-trigger-eval.py evals/skills/owid-catalog/contract_check.py && \
+	  echo "  ok  shell and python lint clean"; \
+	else echo "  ~ uv not found - skipping lint"; fi
 
 test: ## Contract tests: do the OWID endpoints still match what the skills document?
 	@./evals/run-contract-tests.sh $(SKILL)

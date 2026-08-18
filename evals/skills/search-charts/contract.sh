@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 # Contract tests for search-charts: does /api/search still behave the way
-# SKILL.md says it does? Run via ../../../evals/run-contract-tests.sh
+# SKILL.md says it does? Run via `make test SKILL=search-charts`.
 source "$EVALS_LIB/assert.sh"
 
 API="https://ourworldindata.org/api/search"
-COMMON="$WORK/search-common.json"
-BROAD="$WORK/search-broad.json"
-NONCHART="$WORK/search-nonchart.json"
-EMPTY="$WORK/search-empty.json"
+
+COMMON="$WORK/search-common.json"   # a small, ordinary query: envelope shape
+BROAD="$WORK/search-broad.json"     # 50 hits: field presence across many records
+NONCHART="$WORK/search-nonchart.json" # a query returning all three record types
+EMPTY="$WORK/search-empty.json"     # a query with no genuine match
 
 section "Endpoint and response envelope"
 if fetch "$API?q=life+expectancy&hitsPerPage=5" "$COMMON"; then
@@ -27,51 +28,41 @@ fi
 
 section "Hit shape (BaseSearchChartHit)"
 if fetch "$API?q=energy&hitsPerPage=50" "$BROAD"; then
-    jq_true "every hit has url, title, slug, type" "$BROAD" \
-        '[.results[] | has("url") and has("title") and has("slug") and has("type")] | all'
-    jq_true "every hit has availableEntities as an array" "$BROAD" \
-        '[.results[] | .availableEntities | type == "array"] | all'
-    jq_true "every hit has availableTabs as an array" "$BROAD" \
-        '[.results[] | .availableTabs | type == "array"] | all'
+    all_match "every hit has url, title, slug and type" "$BROAD" '.results[]' \
+        'has("url") and has("title") and has("slug") and has("type")'
+    all_match "availableEntities is an array on every hit" "$BROAD" '.results[]' \
+        '.availableEntities | type == "array"'
+    all_match "availableTabs is an array on every hit" "$BROAD" '.results[]' \
+        '.availableTabs | type == "array"'
+    all_match "chart urls are absolute ourworldindata.org urls" "$BROAD" '.results[]' \
+        '.url | startswith("https://ourworldindata.org/")'
     jq_true "every type is one of the documented ChartRecordType values" "$BROAD" \
         '[.results[].type] | unique | inside(["chart", "explorerView", "multiDimView"])'
-    jq_true "chart urls are absolute ourworldindata.org urls" "$BROAD" \
-        '[.results[].url | startswith("https://ourworldindata.org/")] | all'
 
     # SKILL.md's BaseSearchChartHit marks objectID as required. If this fails,
     # the schema in SKILL.md is stale — the field is not worth documenting.
-    jq_true "objectID is present on every hit (documented as required)" "$BROAD" \
-        '[.results[] | has("objectID")] | all'
+    all_match "objectID is present on every hit (documented as required)" "$BROAD" \
+        '.results[]' 'has("objectID")'
 fi
 
 section "Non-chart record types"
 # Which record types a query returns is not stable: q=energy+mix returned mostly
-# explorerView hits one hour and only multiDimView hits the next. So assert each
-# type's documented shape only when that type is actually present in the sample,
-# and skip loudly when it is not. Without the skip, a section that tested nothing
-# looks like a section that passed, because jq's `all` is true of an empty array.
+# explorerView hits one hour and only multiDimView hits the next. all_match skips
+# loudly when its selector matches nothing, so a type missing from the sample
+# cannot masquerade as a passing check.
 if fetch "$API?q=life+expectancy&hitsPerPage=100" "$NONCHART"; then
     note "types present: $(jq -r '[.results[].type] | group_by(.) | map("\(.[0])=\(length)") | join(" ")' "$NONCHART")"
     jq_true "at least one non-chart record type is represented" "$NONCHART" \
         '[.results[] | select(.type != "chart")] | length > 0'
-    jq_true "non-chart hits carry queryParams" "$NONCHART" \
-        '[.results[] | select(.type != "chart") | has("queryParams")] | all'
+    all_match "non-chart hits carry queryParams" "$NONCHART" \
+        '.results[] | select(.type != "chart")' 'has("queryParams")'
 
     # SKILL.md marks explorerType required on SearchExplorerViewHit, and
     # chartConfigId required on SearchMultiDimViewHit.
-    documented_field() {
-        local record_type="$1" field="$2" name count
-        name="$record_type hits carry $field (documented as required)"
-        count=$(jq "[.results[] | select(.type == \"$record_type\")] | length" "$NONCHART")
-        if [[ "$count" -eq 0 ]]; then
-            skip "$name" "no $record_type hits in this sample"
-            return
-        fi
-        jq_true "$name" "$NONCHART" \
-            "[.results[] | select(.type == \"$record_type\") | has(\"$field\")] | all"
-    }
-    documented_field explorerView explorerType
-    documented_field multiDimView chartConfigId
+    all_match "explorerView hits carry explorerType (documented as required)" "$NONCHART" \
+        '.results[] | select(.type == "explorerView")' 'has("explorerType")'
+    all_match "multiDimView hits carry chartConfigId (documented as required)" "$NONCHART" \
+        '.results[] | select(.type == "multiDimView")' 'has("chartConfigId")'
 fi
 
 section "Behaviour on a query with no real match"
@@ -87,23 +78,9 @@ fi
 section "Documentation drift: the tab → URL parameter table"
 # Every tab name the API can return must appear in SKILL.md's mapping table,
 # otherwise an agent cannot build a ?tab= url for it.
-if [[ -s "$BROAD" && -s "$NONCHART" && -s "$COMMON" ]]; then
-    documented=$(sed -n 's/^| `\([A-Za-z][A-Za-z]*\)` | `[a-z-][a-z-]*` |.*/\1/p' "$SKILL_MD" | sort -u)
-    observed=$(jq -r '.results[].availableTabs[]' "$BROAD" "$NONCHART" "$COMMON" 2>/dev/null | sort -u)
-    undocumented=$(comm -13 <(printf '%s\n' "$documented") <(printf '%s\n' "$observed"))
-    if [[ -z "$undocumented" ]]; then
-        _pass "every observed availableTabs value is in the mapping table"
-    else
-        _fail "every observed availableTabs value is in the mapping table" \
-            "missing from the table: $(printf '%s' "$undocumented" | tr '\n' ' ')"
-    fi
-    note "observed tabs: $(printf '%s' "$observed" | tr '\n' ' ')"
-else
-    # Never fall through silently: a check that did not run must not look like a
-    # check that passed.
-    skip "every observed availableTabs value is in the mapping table" \
-        "an earlier search request failed, so there is no sample to compare against"
-fi
+observed_tabs=$(jq -r '.results[].availableTabs[]' "$BROAD" "$NONCHART" "$COMMON" 2>/dev/null | sort -u)
+skill_md_table_covers "every observed availableTabs value is in the mapping table" "$observed_tabs"
+note "observed tabs: $(printf '%s' "$observed_tabs" | tr '\n' ' ')"
 
 section "Documentation drift: example command in SKILL.md"
 skill_md_contains "SKILL.md still points at /api/search" 'ourworldindata\.org/api/search'

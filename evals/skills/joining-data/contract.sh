@@ -14,6 +14,17 @@ CHARTS=(
     "gdp-per-capita-worldbank|World Bank GDP per capita from 1990|1990|2022"
 )
 
+# Every column that declares a timespan, as {start, end} integers. jq allows
+# comments, so the filter can explain itself rather than being a 150-character
+# line at the call site.
+TIMESPANS='
+  [ .columns[]
+    | select(has("timespan"))
+    | .timespan
+    | capture("^(?<s>-?[0-9]+)-(?<e>[0-9]+)$")
+    | { start: (.s | tonumber), end: (.e | tonumber) } ]
+'
+
 for entry in "${CHARTS[@]}"; do
     IFS='|' read -r slug claim min_start min_end <<<"$entry"
     section "$slug — $claim"
@@ -31,8 +42,8 @@ for entry in "${CHARTS[@]}"; do
     # Coverage is the union across columns: population-with-un-projections
     # splits estimates (1950-2023) and the medium projection (2024-2100) into
     # separate columns, so neither column alone proves the claim.
-    starts=$(jq -r '[.columns[] | select(has("timespan")) | .timespan | capture("^(?<s>-?[0-9]+)-(?<e>[0-9]+)$") | .s | tonumber] | min' "$meta" 2>/dev/null)
-    ends=$(jq -r '[.columns[] | select(has("timespan")) | .timespan | capture("^(?<s>-?[0-9]+)-(?<e>[0-9]+)$") | .e | tonumber] | max' "$meta" 2>/dev/null)
+    starts=$(jq -r "$TIMESPANS | map(.start) | min" "$meta" 2>/dev/null)
+    ends=$(jq -r "$TIMESPANS | map(.end) | max" "$meta" 2>/dev/null)
     if [[ -n "$starts" && -n "$ends" && "$starts" != "null" && "$ends" != "null" ]]; then
         note "coverage across all columns: $starts to $ends"
         ok "coverage starts at or before $min_start" test "$starts" -le "$min_start"
@@ -48,19 +59,22 @@ section "Entity codes are joinable as documented"
 # NOTE: csvType=filtered applies the chart's own default entity selection, not
 # "every entity". For the population chart that default is continents plus World,
 # so a country-level check has to pass an explicit country filter.
-if fetch "$GRAPHER/population.csv?csvType=filtered&time=2020" "$WORK/population-default-2020.csv"; then
+DEFAULTS="$WORK/population-default-2020.csv" # the chart's own entity selection
+COUNTRIES="$WORK/population-2020.csv"        # an explicit country filter
+
+if fetch "$GRAPHER/population.csv?csvType=filtered&time=2020" "$DEFAULTS"; then
     ok "custom OWID_ codes exist for non-standard regions" \
-        bash -c "tail -n +2 '$WORK/population-default-2020.csv' | cut -d, -f2 | grep -q '^OWID_'"
+        test -n "$(csv_column "$DEFAULTS" code | grep '^OWID_')"
     ok "World is coded OWID_WRL as documented" \
-        bash -c "grep -q ',OWID_WRL,' '$WORK/population-default-2020.csv'"
-    note "default selection for this chart: $(tail -n +2 "$WORK/population-default-2020.csv" | cut -d, -f2 | sort -u | tr '\n' ' ')"
+        test -n "$(csv_column "$DEFAULTS" code | grep -x 'OWID_WRL')"
+    note "default selection for this chart: $(csv_column "$DEFAULTS" code | sort -u | tr '\n' ' ')"
 fi
 
-if fetch "$GRAPHER/population.csv?csvType=filtered&country=USA~DEU~FRA&time=2020" "$WORK/population-2020.csv"; then
-    ok "Code column holds ISO alpha-3 codes for standard countries" \
-        bash -c "[ \"\$(tail -n +2 '$WORK/population-2020.csv' | cut -d, -f2 | sort -u | tr '\n' ' ')\" = 'DEU FRA USA ' ]"
-    ok "every Code is either 3 uppercase letters, an OWID_ code, or empty" \
-        bash -c "! tail -n +2 '$WORK/population-2020.csv' | cut -d, -f2 | grep -vE '^([A-Z]{3}|OWID_[A-Z_0-9]+|)$' | grep -q ."
+if fetch "$GRAPHER/population.csv?csvType=filtered&country=USA~DEU~FRA&time=2020" "$COUNTRIES"; then
+    csv_column_set "Code column holds ISO alpha-3 codes for standard countries" \
+        "$COUNTRIES" code "DEU FRA USA"
+    csv_column_matches "every Code is 3 uppercase letters or an OWID_ code" \
+        "$COUNTRIES" code '^([A-Z]{3}|OWID_[A-Z_0-9]+)$'
 fi
 
 section "A real join works end to end"

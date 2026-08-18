@@ -94,16 +94,46 @@ that returns early drops its dependent checks from the summary entirely. Each is
 now reported with `skip` and a reason. When you add a check that depends on the
 sample containing something, assert that it does, or `skip` loudly.
 
-Writing a new check: `source "$EVALS_LIB/assert.sh"`, then use `fetch`, `ok`,
-`jq_true`, `jq_eq`, `jq_type`, `has_keys`, `csv_header`, `skill_md_contains`,
-`note`, `skip`, and end with `finish`. Guard dependent checks on `fetch`
-succeeding, so one dead endpoint doesn't cascade into a wall of failures:
+Writing a new check: `source "$EVALS_LIB/assert.sh"` and reach for a helper
+rather than raw shell. The vocabulary exists so that a check reads as a claim
+about the API instead of as plumbing — if you find yourself writing `bash -c`
+with nested quoting, the helper is missing and worth adding.
+
+| Helper | Use |
+|---|---|
+| `fetch <url> <out>` | GET, assert 200, save the body. Returns non-zero so you can guard |
+| `all_match <name> <file> <selector> <predicate>` | every selected element satisfies the predicate |
+| `none_match <name> <file> <selector> <predicate>` | no selected element satisfies it |
+| `jq_true` / `jq_eq` / `jq_type` / `has_keys` | single-value assertions on JSON |
+| `csv_column <file> <col>` | print a column's values, by name, quote-aware |
+| `csv_has_columns` / `csv_min_rows` | CSV preconditions |
+| `csv_column_set` / `csv_column_range` / `csv_column_matches` | assertions on a column's values |
+| `csv_header` | the header line starts with a literal prefix (case-sensitive on purpose) |
+| `skill_md_contains` / `skill_md_table_covers` | documentation-drift checks against SKILL.md |
+| `ok <name> <cmd...>` | last resort: the command exits 0 |
+| `note` / `skip` / `section` / `finish` | output and control |
+
+`all_match` and `none_match` take the selector and the predicate separately. That
+keeps quoting sane, and it lets them insist the selector matched something before
+judging the predicate — `[] | all` is `true` in jq, so a fused filter silently
+passes when the sample contains none of the thing being described.
+
+CSV columns are addressed **by name**, resolved case-insensitively, because
+`useColumnShortNames=true` lowercases the first three headers: an index-based or
+case-sensitive check only works against one of the two documented forms. The
+splitter is quote-aware, which matters for entities like
+`"Bonaire, Sint Eustatius and Saba"` — `cut -d,` returns the wrong field there.
+
+Guard dependent checks on `fetch` succeeding, so one dead endpoint doesn't
+cascade into a wall of failures:
 
 ```bash
 if fetch "$API?q=energy" "$WORK/search.json"; then
     jq_true "a common query returns hits" "$WORK/search.json" '.nbHits > 0'
 fi
 ```
+
+Run `make lint` before committing: shellcheck for the shell, ruff for the Python.
 
 ## Layer 2 — trigger evals
 

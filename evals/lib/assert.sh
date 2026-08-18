@@ -138,6 +138,163 @@ has_keys() {
     fi
 }
 
+# --- collection assertions -------------------------------------------------
+#
+# These take a jq *selector* (which elements) and a jq *predicate* (what must be
+# true of each), instead of one filter that fuses both. That keeps quoting sane
+# and, more importantly, lets the helper insist the selector actually matched
+# something: jq's `all` is true of an empty array, so a fused filter silently
+# passes when the sample happens to contain none of the thing being described.
+
+# all_match <name> <file> <selector> <predicate> — every selected element
+# satisfies the predicate. Skips loudly if the selector matches nothing.
+all_match() {
+    local name="$1" file="$2" selector="$3" predicate="$4" count bad
+    count=$(jq -r "[$selector] | length" "$file" 2>&1)
+    if [[ ! "$count" =~ ^[0-9]+$ ]]; then
+        _fail "$name" "selector '$selector' failed: $count"
+        return
+    fi
+    if [[ "$count" -eq 0 ]]; then
+        skip "$name" "the sample contains no elements matching '$selector'"
+        return
+    fi
+    bad=$(jq -r "[$selector | select(($predicate) | not)] | length" "$file" 2>&1)
+    if [[ "$bad" == "0" ]]; then
+        _pass "$name"
+    else
+        _fail "$name" "$bad of $count element(s) fail '$predicate'"
+    fi
+}
+
+# none_match <name> <file> <selector> <predicate> — no selected element
+# satisfies the predicate. Skips loudly if the selector matches nothing.
+none_match() {
+    local name="$1" file="$2" selector="$3" predicate="$4" count bad
+    count=$(jq -r "[$selector] | length" "$file" 2>&1)
+    if [[ ! "$count" =~ ^[0-9]+$ ]]; then
+        _fail "$name" "selector '$selector' failed: $count"
+        return
+    fi
+    if [[ "$count" -eq 0 ]]; then
+        skip "$name" "the sample contains no elements matching '$selector'"
+        return
+    fi
+    bad=$(jq -r "[$selector | select($predicate)] | length" "$file" 2>&1)
+    if [[ "$bad" == "0" ]]; then
+        _pass "$name"
+    else
+        _fail "$name" "$bad of $count element(s) satisfy '$predicate' and should not"
+    fi
+}
+
+# --- CSV assertions --------------------------------------------------------
+#
+# Columns are addressed by name, not position. That reads better and it is more
+# correct: useColumnShortNames=true lowercases the first three headers, so an
+# index- or case-sensitive check only works for one of the two documented forms.
+
+# csv_column <file> <column-name> — print one column's values, header excluded.
+# Quote-aware, because OWID quotes long column titles that contain commas.
+# Exits non-zero if the column is absent.
+csv_column() {
+    awk -v want="$2" '
+    function csvsplit(line, arr,   i, c, n, field, inq) {
+        n = 0; field = ""; inq = 0
+        for (i = 1; i <= length(line); i++) {
+            c = substr(line, i, 1)
+            if (c == "\"") { inq = !inq; continue }
+            if (c == "," && !inq) { arr[++n] = field; field = ""; continue }
+            field = field c
+        }
+        arr[++n] = field
+        return n
+    }
+    { sub(/\r$/, "") }
+    NR == 1 {
+        n = csvsplit($0, head)
+        for (i = 1; i <= n; i++) if (tolower(head[i]) == tolower(want)) col = i
+        if (!col) exit 1
+        next
+    }
+    { if (csvsplit($0, row) >= col) print row[col] }
+    ' "$1"
+}
+
+# csv_has_columns <name> <file> <column>... — all named columns exist.
+csv_has_columns() {
+    local name="$1" file="$2"
+    shift 2
+    local missing=()
+    for column in "$@"; do
+        csv_column "$file" "$column" >/dev/null 2>&1 || missing+=("$column")
+    done
+    if [[ ${#missing[@]} -eq 0 ]]; then
+        _pass "$name"
+    else
+        _fail "$name" "missing column(s): ${missing[*]}; header is '$(head -1 "$file" | tr -d '\r')'"
+    fi
+}
+
+# csv_min_rows <name> <file> <n> — the file has at least n data rows.
+csv_min_rows() {
+    local name="$1" file="$2" min="$3" rows
+    rows=$(($(grep -c '' "$file") - 1))
+    if [[ "$rows" -ge "$min" ]]; then
+        _pass "$name"
+    else
+        _fail "$name" "$rows data row(s), expected at least $min"
+    fi
+}
+
+# csv_column_set <name> <file> <column> <expected> — the distinct values in the
+# column are exactly the expected space-separated set.
+csv_column_set() {
+    local name="$1" file="$2" column="$3" expected="$4" actual
+    actual=$(csv_column "$file" "$column" 2>/dev/null | sort -u | tr '\n' ' ')
+    expected=$(printf '%s' "$expected" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+    if [[ "$actual" == "$expected" ]]; then
+        _pass "$name"
+    else
+        _fail "$name" "column '$column' holds { ${actual}}, expected { ${expected}}"
+    fi
+}
+
+# csv_column_range <name> <file> <column> <min> <max> — every value in the
+# column is numeric and within [min, max].
+csv_column_range() {
+    local name="$1" file="$2" column="$3" min="$4" max="$5" values lo hi
+    values=$(csv_column "$file" "$column" 2>/dev/null | grep -E '^-?[0-9]+$' | sort -n)
+    if [[ -z "$values" ]]; then
+        _fail "$name" "column '$column' is absent or holds no integers"
+        return
+    fi
+    lo=$(printf '%s\n' "$values" | head -1)
+    hi=$(printf '%s\n' "$values" | tail -1)
+    if [[ "$lo" -ge "$min" && "$hi" -le "$max" ]]; then
+        _pass "$name"
+    else
+        _fail "$name" "column '$column' spans $lo..$hi, expected within $min..$max"
+    fi
+}
+
+# csv_column_matches <name> <file> <column> <ere> — every value in the column
+# matches the extended regular expression.
+csv_column_matches() {
+    local name="$1" file="$2" column="$3" pattern="$4" total bad
+    total=$(csv_column "$file" "$column" 2>/dev/null | grep -c '' || true)
+    if [[ "$total" == "0" ]]; then
+        _fail "$name" "column '$column' is absent or empty"
+        return
+    fi
+    bad=$(csv_column "$file" "$column" 2>/dev/null | grep -cvE "$pattern" || true)
+    if [[ "$bad" == "0" ]]; then
+        _pass "$name"
+    else
+        _fail "$name" "$bad of $total value(s) in '$column' do not match /$pattern/"
+    fi
+}
+
 # csv_header <name> <file> <expected-prefix> — the CSV header starts with this
 # comma-separated prefix.
 csv_header() {
@@ -158,6 +315,29 @@ skill_md_contains() {
         _pass "$name"
     else
         _fail "$name" "SKILL.md has no match for /$pattern/"
+    fi
+}
+
+# skill_md_table_covers <name> <observed-values> — every value in the
+# newline-separated list appears in the first column of a two-column mapping
+# table in SKILL.md, i.e. a row of the form:
+#
+#     | `Value` | `mapped-to` | description |
+#
+# This catches doc drift in the direction that actually hurts: a value the API
+# returns that an agent has no documented mapping for.
+skill_md_table_covers() {
+    local name="$1" observed="$2" documented missing
+    documented=$(sed -n 's/^| *`\([A-Za-z][A-Za-z]*\)` *| *`[a-z-][a-z-]*` *|.*/\1/p' "$SKILL_MD" | sort -u)
+    if [[ -z "$observed" ]]; then
+        skip "$name" "no observed values to compare against"
+        return
+    fi
+    missing=$(comm -13 <(printf '%s\n' "$documented") <(printf '%s\n' "$observed" | sort -u))
+    if [[ -z "$missing" ]]; then
+        _pass "$name"
+    else
+        _fail "$name" "missing from the table: $(printf '%s' "$missing" | tr '\n' ' ')"
     fi
 }
 
