@@ -65,6 +65,13 @@ Then put `owid-skills/skills/*` where your agent looks for skills:
 - **Per project** — `./.agents/skills/` (the shared convention read by Codex, Cursor, OpenCode, …)
 - **Per user** — your agent's own skills directory, e.g. `~/.codex/skills/`, `~/.gemini/skills/`, or `~/.claude/skills/`
 
+### Not working?
+
+If your agent doesn't seem to be using the skills, see the
+[FAQ](FAQ.md#my-agent-isnt-using-the-skills-at-all). The two usual causes are the
+files being in a directory your agent doesn't read, and your agent's reasoning
+effort being turned down far enough that it stops making tool calls.
+
 ### Prerequisites
 
 The skills use a few common command-line tools: `curl`, `jq`, `duckdb`, and `uv`. Install them with your package manager (e.g. `brew install jq duckdb uv`), or on macOS run:
@@ -79,7 +86,7 @@ Data published by Our World in Data is open: it is available under the [Creative
 
 ## Development
 
-Want to add or improve a skill? See [AGENTS.md](AGENTS.md) for repo conventions and [evals/README.md](evals/README.md) for how the skills are evaluated.
+Want to add or improve a skill? See [AGENTS.md](AGENTS.md) for repo conventions, [evals/README.md](evals/README.md) for how the skills are evaluated, and the [FAQ](FAQ.md) for questions that come up often.
 
 ```bash
 make            # list targets
