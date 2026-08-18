@@ -5,9 +5,9 @@ questions, and only the third one needs a model in the loop grading output.
 
 | Layer | Question | Model in the loop? | Cost | Where |
 |---|---|---|---|---|
-| 1. Contract tests | Do the endpoints and response shapes documented in `SKILL.md` still match reality? | no | seconds | `evals/<skill>/contract.sh` |
-| 2. Trigger evals | Does the skill fire when it should, stay quiet when it shouldn't, and not steal a sibling's job? | yes (routing only) | minutes | `evals/<skill>/triggers.json` |
-| 3. Output evals | Is the output any good, and better than no skill at all? | yes (plus a human) | tens of minutes | `evals/<skill>/evals.json` |
+| 1. Contract tests | Do the endpoints and response shapes documented in `SKILL.md` still match reality? | no | seconds | `evals/skills/<skill>/contract.sh` |
+| 2. Trigger evals | Does the skill fire when it should, stay quiet when it shouldn't, and not steal a sibling's job? | yes (routing only) | minutes | `evals/skills/<skill>/triggers.json` |
+| 3. Output evals | Is the output any good, and better than no skill at all? | yes (plus a human) | tens of minutes | `evals/skills/<skill>/evals.json` |
 
 Layer 1 catches the failure mode that will actually bite this repo: these skills
 are thin documentation over live public OWID endpoints, so they rot when the API
@@ -26,7 +26,7 @@ evals/
 ├── run-contract-tests.sh               # layer 1 runner
 ├── run-trigger-eval.py                 # layer 2 runner
 ├── results/                            # gitignored — every run writes here
-└── <skill>/                            # one directory per skill, mirroring skills/
+└── skills/<skill>/                     # mirrors skills/, one directory per skill
     ├── contract.sh                     # layer 1
     ├── triggers.json                   # layer 2
     ├── evals.json                      # layer 3
@@ -34,6 +34,10 @@ evals/
 
 skills/<skill>/SKILL.md                 # the skill, and nothing else
 ```
+
+Everything directly under `evals/` is harness; everything under `evals/skills/` is
+per-skill input, named exactly as the skill it tests. The runners glob
+`evals/skills/*/`, so they cannot mistake `lib/` or `results/` for a skill.
 
 ## Why evals live here and not inside the skill directory
 

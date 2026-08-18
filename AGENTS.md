@@ -8,7 +8,7 @@ This repository publishes **agent skills for working with Our World in Data** (s
 Makefile                        # entry points: make validate / test / triggers
 skills/<skill-name>/SKILL.md    # one directory per skill, and nothing else
 .claude-plugin/marketplace.json # marketplace + plugin definition
-evals/<skill-name>/             # that skill's test cases and fixtures
+evals/skills/<skill-name>/      # that skill's test cases and fixtures
 evals/                          # shared eval harness + playbook (evals/README.md)
 install-prerequisites-macos.sh  # helper to install CLI tools skills rely on
 ```
@@ -17,7 +17,7 @@ install-prerequisites-macos.sh  # helper to install CLI tools skills rely on
 bundled `scripts/`, `references/` or `assets/`. A skill directory is copied
 recursively into users' projects by the cross-agent installer, which has no
 ignore mechanism — anything you put there ships to everyone. Evals live in a
-sibling `evals/<skill-name>/` for exactly this reason; see
+sibling `evals/skills/<skill-name>/` for exactly this reason; see
 [evals/README.md](evals/README.md).
 
 ## Adding or changing a skill
@@ -53,7 +53,7 @@ For end-to-end testing, load the plugin directly in a live session:
 
 ## Evals
 
-Each skill has an `evals/<skill-name>/` directory holding its test inputs; the
+Each skill has an `evals/skills/<skill-name>/` directory holding its test inputs; the
 shared harness and the playbook live in [evals/README.md](evals/README.md). Two
 rules, both enforced by `make validate`:
 

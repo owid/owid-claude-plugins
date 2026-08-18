@@ -5,7 +5,7 @@
 # ///
 """Layer 2 runner: does a skill fire when it should, and stay quiet when it shouldn't?
 
-Runs each query from evals/<skill>/triggers.json through `claude -p` with this
+Runs each query from evals/skills/<skill>/triggers.json through `claude -p` with this
 repo loaded as a plugin, and records *which* skill (if any) the model reached
 for. Because all four OWID skills are loaded together, the interesting failure
 is not just "nothing triggered" but "the wrong sibling triggered" — the skills
@@ -37,6 +37,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SKILLS_DIR = REPO_ROOT / "skills"
 EVALS_DIR = REPO_ROOT / "evals"
+EVAL_SKILLS_DIR = EVALS_DIR / "skills"
 RESULTS_DIR = EVALS_DIR / "results" / "triggers"
 
 # Only the Skill tool is allowed: we want to observe the routing decision, not
@@ -50,7 +51,7 @@ def known_skills() -> list[str]:
 
 
 def load_queries(skill: str) -> list[dict]:
-    path = EVALS_DIR / skill / "triggers.json"
+    path = EVAL_SKILLS_DIR / skill / "triggers.json"
     if not path.is_file():
         sys.exit(f"no trigger eval set at {path.relative_to(REPO_ROOT)}")
     data = json.loads(path.read_text())
@@ -203,7 +204,7 @@ def main() -> int:
 
     candidates = known_skills()
     if args.all:
-        skills = [s for s in candidates if (EVALS_DIR / s / "triggers.json").is_file()]
+        skills = [s for s in candidates if (EVAL_SKILLS_DIR / s / "triggers.json").is_file()]
     else:
         if args.skill not in candidates:
             sys.exit(f"unknown skill '{args.skill}'; known: {', '.join(candidates)}")

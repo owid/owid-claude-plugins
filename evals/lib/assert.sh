@@ -5,20 +5,20 @@
 # documents still match what the API actually returns. No model in the loop, so
 # they are cheap and deterministic enough to run on every PR and nightly.
 #
-# Source this from evals/<skill-name>/contract.sh:
+# Source this from evals/skills/<skill-name>/contract.sh:
 #
 #   source "$EVALS_LIB/assert.sh"
 #
 # The runner exports EVALS_LIB, EVAL_DIR, SKILL_DIR, SKILL_NAME and WORK before
 # invoking each contract.sh. When running a contract.sh directly, they are
-# derived below from its own location: evals/<skill-name>/contract.sh.
+# derived below from its own location: evals/skills/<skill-name>/contract.sh.
 
 # Deliberately no `set -e`: one failing check must not abort the remaining ones.
 set -uo pipefail
 
 : "${EVAL_DIR:="$(cd "$(dirname "${BASH_SOURCE[1]}")" && pwd)"}"
 : "${SKILL_NAME:="$(basename "$EVAL_DIR")"}"
-REPO_ROOT="$(cd "$EVAL_DIR/../.." && pwd)"
+REPO_ROOT="$(cd "$EVAL_DIR/../../.." && pwd)"
 : "${SKILL_DIR:="$REPO_ROOT/skills/$SKILL_NAME"}"
 : "${WORK:="$REPO_ROOT/evals/results/contract/$SKILL_NAME"}"
 SKILL_MD="$SKILL_DIR/SKILL.md"

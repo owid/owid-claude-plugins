@@ -21,39 +21,39 @@ for tool in curl jq; do
 done
 
 # Which skills to run: the arguments, or every skill that has a contract.sh.
-# The glob only matches evals/<skill>/, so evals/lib and evals/results are
-# skipped without needing to name them.
+# Per-skill inputs live under evals/skills/, mirroring the top-level skills/
+# directory, so this glob cannot pick up the harness or the results directory.
 skills=()
 if [[ $# -gt 0 ]]; then
     skills=("$@")
 else
-    for f in "$REPO_ROOT"/evals/*/contract.sh; do
+    for f in "$REPO_ROOT"/evals/skills/*/contract.sh; do
         [[ -e "$f" ]] || continue
         skills+=("$(basename "$(dirname "$f")")")
     done
 fi
 
 if [[ ${#skills[@]} -eq 0 ]]; then
-    printf 'no contract tests found under evals/*/contract.sh\n' >&2
+    printf 'no contract tests found under evals/skills/*/contract.sh\n' >&2
     exit 2
 fi
 
 failed_skills=()
 for skill in "${skills[@]}"; do
-    contract="$REPO_ROOT/evals/$skill/contract.sh"
+    contract="$REPO_ROOT/evals/skills/$skill/contract.sh"
     if [[ ! -f "$contract" ]]; then
-        printf '\n\033[31mno contract tests at evals/%s/contract.sh\033[0m\n' "$skill" >&2
+        printf '\n\033[31mno contract tests at evals/skills/%s/contract.sh\033[0m\n' "$skill" >&2
         failed_skills+=("$skill")
         continue
     fi
     if [[ ! -f "$REPO_ROOT/skills/$skill/SKILL.md" ]]; then
-        printf '\n\033[31mevals/%s/ has no matching skill at skills/%s/SKILL.md\033[0m\n' "$skill" "$skill" >&2
+        printf '\n\033[31mevals/skills/%s/ has no matching skill at skills/%s/SKILL.md\033[0m\n' "$skill" "$skill" >&2
         failed_skills+=("$skill")
         continue
     fi
 
     printf '\n\033[1m▶ %s\033[0m\n' "$skill"
-    EVAL_DIR="$REPO_ROOT/evals/$skill" \
+    EVAL_DIR="$REPO_ROOT/evals/skills/$skill" \
         SKILL_DIR="$REPO_ROOT/skills/$skill" \
         SKILL_NAME="$skill" \
         WORK="$RESULTS/$skill" \
