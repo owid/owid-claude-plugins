@@ -6,7 +6,7 @@ source "$EVALS_LIB/assert.sh"
 API="https://ourworldindata.org/api/search"
 COMMON="$WORK/search-common.json"
 BROAD="$WORK/search-broad.json"
-EXPLORER="$WORK/search-explorer.json"
+NONCHART="$WORK/search-nonchart.json"
 EMPTY="$WORK/search-empty.json"
 
 section "Endpoint and response envelope"
@@ -44,16 +44,34 @@ if fetch "$API?q=energy&hitsPerPage=50" "$BROAD"; then
         '[.results[] | has("objectID")] | all'
 fi
 
-section "Explorer view hits"
-if fetch "$API?q=energy+mix&hitsPerPage=100" "$EXPLORER"; then
-    jq_true "the query returns at least one explorerView hit" "$EXPLORER" \
-        '[.results[] | select(.type == "explorerView")] | length > 0'
-    jq_true "explorerView hits carry queryParams" "$EXPLORER" \
-        '[.results[] | select(.type == "explorerView") | has("queryParams")] | all'
+section "Non-chart record types"
+# Which record types a query returns is not stable: q=energy+mix returned mostly
+# explorerView hits one hour and only multiDimView hits the next. So assert each
+# type's documented shape only when that type is actually present in the sample,
+# and skip loudly when it is not. Without the skip, a section that tested nothing
+# looks like a section that passed, because jq's `all` is true of an empty array.
+if fetch "$API?q=life+expectancy&hitsPerPage=100" "$NONCHART"; then
+    note "types present: $(jq -r '[.results[].type] | group_by(.) | map("\(.[0])=\(length)") | join(" ")' "$NONCHART")"
+    jq_true "at least one non-chart record type is represented" "$NONCHART" \
+        '[.results[] | select(.type != "chart")] | length > 0'
+    jq_true "non-chart hits carry queryParams" "$NONCHART" \
+        '[.results[] | select(.type != "chart") | has("queryParams")] | all'
 
-    # Documented as required on SearchExplorerViewHit.
-    jq_true "explorerView hits carry explorerType (documented as required)" "$EXPLORER" \
-        '[.results[] | select(.type == "explorerView") | has("explorerType")] | all'
+    # SKILL.md marks explorerType required on SearchExplorerViewHit, and
+    # chartConfigId required on SearchMultiDimViewHit.
+    documented_field() {
+        local record_type="$1" field="$2" name count
+        name="$record_type hits carry $field (documented as required)"
+        count=$(jq "[.results[] | select(.type == \"$record_type\")] | length" "$NONCHART")
+        if [[ "$count" -eq 0 ]]; then
+            skip "$name" "no $record_type hits in this sample"
+            return
+        fi
+        jq_true "$name" "$NONCHART" \
+            "[.results[] | select(.type == \"$record_type\") | has(\"$field\")] | all"
+    }
+    documented_field explorerView explorerType
+    documented_field multiDimView chartConfigId
 fi
 
 section "Behaviour on a query with no real match"
@@ -69,9 +87,9 @@ fi
 section "Documentation drift: the tab → URL parameter table"
 # Every tab name the API can return must appear in SKILL.md's mapping table,
 # otherwise an agent cannot build a ?tab= url for it.
-if [[ -s "$BROAD" && -s "$EXPLORER" && -s "$COMMON" ]]; then
+if [[ -s "$BROAD" && -s "$NONCHART" && -s "$COMMON" ]]; then
     documented=$(sed -n 's/^| `\([A-Za-z][A-Za-z]*\)` | `[a-z-][a-z-]*` |.*/\1/p' "$SKILL_MD" | sort -u)
-    observed=$(jq -r '.results[].availableTabs[]' "$BROAD" "$EXPLORER" "$COMMON" 2>/dev/null | sort -u)
+    observed=$(jq -r '.results[].availableTabs[]' "$BROAD" "$NONCHART" "$COMMON" 2>/dev/null | sort -u)
     undocumented=$(comm -13 <(printf '%s\n' "$documented") <(printf '%s\n' "$observed"))
     if [[ -z "$undocumented" ]]; then
         _pass "every observed availableTabs value is in the mapping table"
@@ -80,6 +98,11 @@ if [[ -s "$BROAD" && -s "$EXPLORER" && -s "$COMMON" ]]; then
             "missing from the table: $(printf '%s' "$undocumented" | tr '\n' ' ')"
     fi
     note "observed tabs: $(printf '%s' "$observed" | tr '\n' ' ')"
+else
+    # Never fall through silently: a check that did not run must not look like a
+    # check that passed.
+    skip "every observed availableTabs value is in the mapping table" \
+        "an earlier search request failed, so there is no sample to compare against"
 fi
 
 section "Documentation drift: example command in SKILL.md"

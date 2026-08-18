@@ -18,12 +18,26 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 import traceback
 from typing import Any, Callable
 
 
 def emit(status: str, name: str, detail: str = "") -> None:
     print(f"{status}\t{name}\t{detail}".rstrip("\t"), flush=True)
+
+
+def retry(fn: Callable[[], Any], attempts: int = 3, delay: float = 2.0) -> Any:
+    """Retry fn on any exception. search.owid.io returns a transient 502 often
+    enough that a single attempt makes the nightly run flaky rather than
+    informative."""
+    for attempt in range(1, attempts + 1):
+        try:
+            return fn()
+        except Exception:
+            if attempt == attempts:
+                raise
+            time.sleep(delay)
 
 
 def check(name: str, fn: Callable[[], Any]) -> Any:
@@ -93,9 +107,19 @@ def main() -> int:
     else:
         indicators = check(
             "search(kind='indicator') semantic search returns results",
-            lambda: _nonempty(search("share of energy from renewable sources", kind="indicator")),
+            lambda: _nonempty(retry(lambda: search("share of energy from renewable sources", kind="indicator"))),
         )
-        if indicators is not None:
+        if indicators is None:
+            # Report the checks that did not run. A gate failure must not make
+            # dependent checks disappear from the summary.
+            for dependent in (
+                "indicator results convert to a DataFrame",
+                "an indicator result can .fetch() a single column",
+                "an indicator result can .fetch_table()",
+                "sort_by='relevance' is accepted",
+            ):
+                emit("SKIP", dependent, "indicator search did not return results")
+        else:
             check("indicator results convert to a DataFrame", lambda: not indicators.to_frame().empty)
             check("an indicator result can .fetch() a single column", lambda: _nonempty(indicators[0].fetch()))
             check("an indicator result can .fetch_table()", lambda: _nonempty(indicators[0].fetch_table()))

@@ -62,6 +62,14 @@ returns. The tab-mapping check in `search-charts` is the clearest example: if
 OWID adds a new chart type, the check fails because an agent reading the skill
 would have no way to build a `?tab=` URL for it.
 
+**A check that did not run must never look like a check that passed.** This bit
+us three ways: jq's `all` is `true` for an empty array, so a per-type assertion
+passes vacuously when the sample holds none of that type; a `[[ -s "$FILE" ]]`
+guard falls through silently when an earlier request failed; and a Python gate
+that returns early drops its dependent checks from the summary entirely. Each is
+now reported with `skip` and a reason. When you add a check that depends on the
+sample containing something, assert that it does, or `skip` loudly.
+
 Writing a new check: `source "$EVALS_LIB/assert.sh"`, then use `fetch`, `ok`,
 `jq_true`, `jq_eq`, `jq_type`, `has_keys`, `csv_header`, `skill_md_contains`,
 `note`, `skip`, and end with `finish`. Guard dependent checks on `fetch`

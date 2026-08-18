@@ -36,6 +36,7 @@ while IFS=$'\t' read -r status name detail; do
     case "$status" in
     PASS) _pass "$name" ;;
     FAIL) _fail "$name" "$detail" ;;
+    SKIP) skip "$name" "$detail" ;;
     NOTE) note "$name" ;;
     esac
 done <"$OUT"
