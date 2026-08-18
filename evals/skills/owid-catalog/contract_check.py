@@ -103,31 +103,37 @@ def main() -> int:
         check("regex match mode is accepted", lambda: search("gdp.*capita", kind="table", match="regex") is not None)
 
     # --- Search: indicators ----------------------------------------------
-    if os.environ.get("SKIP_SLOW"):
-        emit("NOTE", "skipped semantic indicator search (SKIP_SLOW=1)")
+    # Name the gate and its dependents once, so all three paths — ran, gate
+    # failed, deliberately skipped — report the same set of checks. A check that
+    # did not run must never simply vanish from the totals: SKIP_SLOW=1 used to
+    # emit a bare note, which made a reduced run look like a complete pass.
+    gate = "search(kind='indicator') semantic search returns results"
+    skip_slow = bool(os.environ.get("SKIP_SLOW"))
+    indicators = None
+
+    if skip_slow:
+        emit("SKIP", gate, "SKIP_SLOW=1")
     else:
         indicators = check(
-            "search(kind='indicator') semantic search returns results",
+            gate,
             lambda: _nonempty(retry(lambda: search("share of energy from renewable sources", kind="indicator"))),
         )
+
+    dependents: list[tuple[str, Callable[[], Any]]] = [
+        ("indicator results convert to a DataFrame", lambda: not indicators.to_frame().empty),
+        ("an indicator result can .fetch() a single column", lambda: _nonempty(indicators[0].fetch())),
+        ("an indicator result can .fetch_table()", lambda: _nonempty(indicators[0].fetch_table())),
+        (
+            "sort_by='relevance' is accepted",
+            lambda: search("CO2 emissions per capita", kind="indicator", sort_by="relevance") is not None,
+        ),
+    ]
+    reason = "SKIP_SLOW=1" if skip_slow else "indicator search did not return results"
+    for name, fn in dependents:
         if indicators is None:
-            # Report the checks that did not run. A gate failure must not make
-            # dependent checks disappear from the summary.
-            for dependent in (
-                "indicator results convert to a DataFrame",
-                "an indicator result can .fetch() a single column",
-                "an indicator result can .fetch_table()",
-                "sort_by='relevance' is accepted",
-            ):
-                emit("SKIP", dependent, "indicator search did not return results")
+            emit("SKIP", name, reason)
         else:
-            check("indicator results convert to a DataFrame", lambda: not indicators.to_frame().empty)
-            check("an indicator result can .fetch() a single column", lambda: _nonempty(indicators[0].fetch()))
-            check("an indicator result can .fetch_table()", lambda: _nonempty(indicators[0].fetch_table()))
-            check(
-                "sort_by='relevance' is accepted",
-                lambda: search("CO2 emissions per capita", kind="indicator", sort_by="relevance") is not None,
-            )
+            check(name, fn)
 
     return 0
 

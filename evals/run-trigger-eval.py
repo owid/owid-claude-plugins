@@ -124,7 +124,21 @@ def skills_in_line(line: str, candidates: list[str]) -> set[str]:
 
 
 def run_once(query: str, candidates: list[str], timeout: int, model: str | None) -> dict:
-    """Run one query; return which skills fired plus the raw transcript."""
+    """Run one query; return which skills fired, plus whether the run was usable.
+
+    "No skill fired" and "the run never happened" look identical from the
+    outside, and conflating them is dangerous: an unauthenticated or misconfigured
+    CLI would score every negative case as correct and quietly report high
+    accuracy on nothing. So a run is only usable if it either observed a routing
+    decision or completed cleanly.
+    """
+    timed_out = False
+
+    def kill_on_timeout() -> None:
+        nonlocal timed_out
+        timed_out = True
+        proc.kill()
+
     env = {k: v for k, v in os.environ.items() if k != "CLAUDECODE"}
     proc = subprocess.Popen(
         build_command(query, model),
@@ -136,7 +150,7 @@ def run_once(query: str, candidates: list[str], timeout: int, model: str | None)
         text=True,
     )
 
-    killer = threading.Timer(timeout, proc.kill)
+    killer = threading.Timer(timeout, kill_on_timeout)
     killer.start()
 
     fired: set[str] = set()
@@ -155,7 +169,21 @@ def run_once(query: str, candidates: list[str], timeout: int, model: str | None)
         proc.kill()
         proc.wait()
 
-    return {"fired": sorted(fired), "transcript": "".join(transcript)}
+    stderr = proc.stderr.read() if proc.stderr else ""
+
+    if fired:
+        error = None  # we saw the decision; the exit status after kill is noise
+    elif timed_out:
+        error = f"timed out after {timeout}s without a routing decision"
+    elif proc.returncode != 0:
+        tail = (stderr.strip().splitlines() or ["no stderr"])[-1]
+        error = f"claude exited {proc.returncode}: {tail[:200]}"
+    elif not transcript:
+        error = "claude produced no output"
+    else:
+        error = None  # ran cleanly and chose no skill, which is a real result
+
+    return {"fired": sorted(fired), "ok": error is None, "error": error, "transcript": "".join(transcript)}
 
 
 def classify(skill: str, row: dict, fired: list[str]) -> str:
@@ -235,15 +263,17 @@ def main() -> int:
                 i = futures[done]
                 try:
                     results[i].append(done.result())
-                except Exception as exc:  # a crashed run is a failed run, not a crashed suite
-                    results[i].append({"fired": [], "transcript": f"RUNNER ERROR: {exc}"})
+                except Exception as exc:  # a crashed run must not crash the suite
+                    results[i].append(
+                        {"fired": [], "ok": False, "error": f"runner error: {exc}", "transcript": ""}
+                    )
                 print(".", end="", flush=True)
         print()
 
         report = summarize(skill, queries, results, args.threshold)
         write_report(skill, report, results, args)
         print_report(report)
-        if report["summary"]["accuracy"] < 1.0:
+        if report["summary"]["accuracy"] < 1.0 or report["summary"]["errored_runs"]:
             exit_code = 1
 
     return exit_code
@@ -255,30 +285,42 @@ def command_exists(name: str) -> bool:
 
 def summarize(skill: str, queries: list[dict], results: dict[int, list[dict]], threshold: float) -> dict:
     rows = []
+    errored_runs = 0
     for i, q in enumerate(queries):
         runs = results[i]
+        # Only runs that actually produced a routing decision may vote. Counting a
+        # broken run as "nothing fired" would score negative cases as correct.
+        usable = [r for r in runs if r.get("ok", True)]
+        errors = [r["error"] for r in runs if not r.get("ok", True)]
+        errored_runs += len(errors)
+
+        row = {
+            "query": q["query"],
+            "should_trigger": q["should_trigger"],
+            "expected_skill": q.get("expected_skill"),
+            "note": q.get("note", ""),
+            "runs": len(runs),
+            "errored_runs": len(errors),
+        }
+
+        if not usable:
+            rows.append({**row, "fired": [], "fire_counts": {}, "outcome": "error", "error": errors[0]})
+            continue
+
         fire_counts: dict[str, int] = {}
-        for run in runs:
+        for run in usable:
             for name in run["fired"]:
                 fire_counts[name] = fire_counts.get(name, 0) + 1
-        # A skill counts as triggered if it fired in at least `threshold` of runs.
-        fired = sorted(n for n, c in fire_counts.items() if c / len(runs) >= threshold)
-        rows.append(
-            {
-                "query": q["query"],
-                "should_trigger": q["should_trigger"],
-                "expected_skill": q.get("expected_skill"),
-                "note": q.get("note", ""),
-                "fired": fired,
-                "fire_counts": fire_counts,
-                "runs": len(runs),
-                "outcome": classify(skill, q, fired),
-            }
-        )
+        # A skill counts as triggered if it fired in at least `threshold` of the
+        # usable runs.
+        fired = sorted(n for n, c in fire_counts.items() if c / len(usable) >= threshold)
+        rows.append({**row, "fired": fired, "fire_counts": fire_counts, "outcome": classify(skill, q, fired)})
 
+    # Count every outcome across all rows. Filtering misses and misroutes to the
+    # `should_trigger: true` rows would hide them for sibling-routing cases, which
+    # are the failure mode this runner mainly exists to catch.
     outcomes = [r["outcome"] for r in rows]
     positives = [r for r in rows if r["should_trigger"]]
-    negatives = [r for r in rows if not r["should_trigger"]]
     return {
         "skill": skill,
         "threshold": threshold,
@@ -287,18 +329,23 @@ def summarize(skill: str, queries: list[dict], results: dict[int, list[dict]], t
         "summary": {
             "accuracy": outcomes.count("correct") / len(rows) if rows else 0.0,
             "recall": sum(r["outcome"] == "correct" for r in positives) / len(positives) if positives else None,
-            "misroutes": sum(r["outcome"] == "misroute" for r in positives),
-            "misses": sum(r["outcome"] == "miss" for r in positives),
-            "false_positives": sum(r["outcome"] == "false_positive" for r in negatives),
+            "misroutes": outcomes.count("misroute"),
+            "misses": outcomes.count("miss"),
+            "false_positives": outcomes.count("false_positive"),
+            "errors": outcomes.count("error"),
+            "errored_runs": errored_runs,
         },
     }
 
 
 def print_report(report: dict) -> None:
     marks = {"correct": "\033[32m✓\033[0m", "miss": "\033[31m✗ miss\033[0m",
-             "misroute": "\033[33m→ misroute\033[0m", "false_positive": "\033[31m✗ false positive\033[0m"}
+             "misroute": "\033[33m→ misroute\033[0m", "false_positive": "\033[31m✗ false positive\033[0m",
+             "error": "\033[31m! error\033[0m"}
     for row in report["rows"]:
         detail = f" (fired: {', '.join(row['fired'])})" if row["fired"] else ""
+        if row["outcome"] == "error":
+            detail = f" ({row['error']})"
         query = row["query"] if len(row["query"]) <= 88 else row["query"][:85] + "..."
         print(f"  {marks[row['outcome']]}{detail}\n      {query}")
     s = report["summary"]
@@ -307,6 +354,11 @@ def print_report(report: dict) -> None:
         f"\n  accuracy {s['accuracy']:.0%} | recall {recall} | "
         f"{s['misses']} miss, {s['misroutes']} misroute, {s['false_positives']} false positive"
     )
+    if s["errored_runs"]:
+        print(
+            f"\n  \033[31m{s['errored_runs']} run(s) failed and {s['errors']} query(ies) have no usable "
+            f"result — treat the numbers above as invalid until that is fixed.\033[0m"
+        )
 
 
 def write_report(skill: str, report: dict, results: dict[int, list[dict]], args: argparse.Namespace) -> None:

@@ -156,6 +156,14 @@ in. The runner records *which* skill fired, which makes four outcomes possible:
 | `miss` | no skill fired but one should have |
 | `misroute` | a different skill fired than the one expected |
 | `false_positive` | the skill under test fired when it should not have |
+| `error` | the run never produced a routing decision, so it says nothing either way |
+
+`error` exists because "no skill fired" and "the run never happened" look
+identical from the outside. Conflating them is dangerous: an unauthenticated CLI
+would score every negative case as `correct` and report respectable accuracy on
+nothing at all. Only runs that observed a decision or exited cleanly are allowed
+to vote, failed runs are reported with their cause, and any failed run makes the
+whole invocation exit non-zero.
 
 `triggers.json` is a list of `{query, should_trigger}` objects, compatible with
 the eval-set format that `anthropics/skills`' `skill-creator` uses. Two
