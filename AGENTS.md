@@ -5,6 +5,7 @@ This repository publishes **agent skills for working with Our World in Data** (s
 ## Structure
 
 ```
+FAQ.md                          # common user and contributor questions
 Makefile                        # entry points: make validate / test / triggers
 skills/<skill-name>/SKILL.md    # one directory per skill, and nothing else
 .claude-plugin/marketplace.json # marketplace + plugin definition

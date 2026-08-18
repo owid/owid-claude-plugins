@@ -12,7 +12,7 @@
   {
     "query": "does owid have population broken down by sex and age group? the grapher charts only seem to give me totals and i need the extra dimensions for a cohort model",
     "should_trigger": true,
-    "note": "the garden vs grapher channel distinction is the answer"
+    "note": "the garden vs grapher channel distinction is the answer. Deliberately hard: it opens with 'does owid have', which reads as chart discovery, and the owid-catalog tells (extra dimensions, cohort model) only arrive later. It misrouted to search-charts 3/3 before the descriptions were rewritten."
   },
   {
     "query": "write a uv script that pulls owid renewable energy share, resamples to 5-year means per country, and writes the result to renewables_5yr.parquet",

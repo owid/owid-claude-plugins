@@ -73,12 +73,9 @@ def build_command(query: str, model: str | None, effort: str, max_budget: float 
         "--verbose",
         "--allowed-tools",
         ALLOWED_TOOLS,
-        # Routing is a shallow decision the model makes before doing any work, so
-        # thinking tokens are pure waste here. Raise this for a fidelity run that
-        # should match a real session's effort.
-        "--effort",
-        effort,
     ]
+    if effort:
+        cmd += ["--effort", effort]
     if model:
         cmd += ["--model", model]
     if max_budget is not None:
@@ -106,7 +103,10 @@ def skills_in_line(line: str, candidates: list[str]) -> set[str]:
         obj = None
 
     if isinstance(obj, dict):
-        blocks = (obj.get("message") or {}).get("content")
+        message = obj.get("message")
+        # Some stream events carry `message` as a plain string, so this cannot
+        # assume a dict — `(x or {}).get(...)` blows up on a non-empty string.
+        blocks = message.get("content") if isinstance(message, dict) else None
         if isinstance(blocks, list):
             for block in blocks:
                 if not isinstance(block, dict) or block.get("type") != "tool_use":
@@ -234,12 +234,20 @@ def main() -> int:
     target.add_argument("--all", action="store_true", help="every skill with a triggers.json")
     parser.add_argument("--runs", type=int, default=3, help="runs per query (default: 3)")
     parser.add_argument("--workers", type=int, default=4, help="parallel runs (default: 4)")
-    parser.add_argument("--timeout", type=int, default=90, help="seconds per run (default: 90)")
+    parser.add_argument(
+        "--timeout", type=int, default=180,
+        help="seconds per run (default: 180). A run that fires a skill is killed immediately, "
+             "but a true negative has no decision to observe, so it only ends when the model "
+             "finishes answering — which at higher effort can take a while.",
+    )
     parser.add_argument("--threshold", type=float, default=0.5, help="fire rate counted as a trigger (default: 0.5)")
     parser.add_argument("--model", default=None, help="model for claude -p (default: your configured model)")
     parser.add_argument(
-        "--effort", default="low", choices=["low", "medium", "high", "xhigh", "max"],
-        help="reasoning effort per run (default: low — routing needs no deep thinking)",
+        "--effort", default=None, choices=["low", "medium", "high", "xhigh", "max"],
+        help="reasoning effort per run (default: inherit your session's effort). Measured, "
+             "not assumed: at low effort the model answers more queries directly instead of "
+             "reaching for a skill, which shows up as misses and understates real triggering. "
+             "Use it to cut cost only when comparing two descriptions at the same effort.",
     )
     parser.add_argument(
         "--max-budget-usd", type=float, default=None,

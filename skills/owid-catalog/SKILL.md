@@ -1,6 +1,6 @@
 ---
 name: "owid-catalog"
-description: "Access Our World In Data's published datasets using the owid-catalog Python library. Provides a unified Python API for searching and fetching chart data, catalog tables, and indicators — returning enhanced pandas DataFrames with metadata. Use this as a Python-native alternative to the HTTP-based search-charts and fetch-chart-data skills."
+description: "Access Our World In Data from Python with the owid-catalog library: load chart data, catalog tables or individual indicators as pandas DataFrames that carry their own units, descriptions, sources and citations. Use this skill whenever the work happens in Python or a notebook (pandas, a uv script, matplotlib, parquet); whenever you need an indicator's metadata, units or codebook; whenever you need dimensions that published charts flatten away, such as sex, age group or projection variant; or whenever you need to search OWID's full catalog of indicators and tables, including semantic search by meaning, rather than only its published charts. Prefer it over the HTTP-based search-charts and fetch-chart-data skills for any Python-based analysis."
 allowed-tools:
 - "Bash(uv:*)"
 - "Bash(pip:*)"
@@ -156,8 +156,11 @@ print(results.to_frame().head(30).to_csv())
 # Get all fields for deeper inspection
 print(results.to_frame(all_fields=True).head(30).to_csv())
 
-# Sort by relevance (default) or similarity
-results = search("CO2 emissions per capita", kind="indicator", sort_by="relevance")
+# Results arrive sorted by semantic similarity (the `score` field), with
+# `popularity` breaking ties. `search()` takes no sort argument — re-sort the
+# returned ResponseSet instead, using any field of the result:
+results = search("CO2 emissions per capita", kind="indicator")
+results = results.sort_by("popularity", reverse=True)  # or "score", "n_charts"
 
 # Fetch indicator data
 tb = results[0].fetch()        # single-column indicator

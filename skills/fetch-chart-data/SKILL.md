@@ -55,7 +55,7 @@ export type MetadataColumn = {
     titleShort: string
     titleLong: string
     descriptionShort?: string
-    descriptionKey?: string[] // curated by experts at Our World In Data to collect important information or caveats about this data. If they are given, it might make sense to surface this information to the user.
+    descriptionKey?: string // a markdown bulleted list (one `- ` item per line), curated by experts at Our World In Data to collect important information or caveats about this data. If given, it might make sense to surface this information to the user.
     descriptionProcessing?: string // notes about how this data was processed by Our World In Data in case it is not a straightforward republishing from the original source
     shortUnit?: string
     unit?: string
@@ -99,6 +99,8 @@ The high level structure of the CSV file is that each row is an observation for 
 The first two columns in the CSV file are "Entity" and "Code". "Entity" is the name of the entity (e.g. "United States"). "Code" is the OWID internal entity code that we use if the entity is a country or region. For normal countries, this is the same as the [iso alpha-3](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-3) code of the entity (e.g. "USA") - for non-standard countries like historical countries these are custom codes.
 
 The third column is either "Year" or "Day". If the data is annual, this is "Year" and contains only the year as an integer. If the column is "Day", the column contains a date string in the form "YYYY-MM-DD".
+
+Note that `useColumnShortNames=true` lowercases these first three headers, so with the recommended base parameters they arrive as `entity,code,year` (or `entity,code,day`). Match column names case-insensitively rather than hardcoding either form.
 
 The other columns are the data columns, which are the time series that power the chart.
 

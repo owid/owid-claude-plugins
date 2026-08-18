@@ -1,6 +1,6 @@
 ---
 name: "search-charts"
-description: "Our World In Data offers thousands of charts and related data on many important topics - from global population data, energy and electricity, economic data like GDP or poverty, health data like causes of death or prevalence of diseases, to data on democracy, violence and war. This skill describes how to effectively search for charts to either show visually or download the data for."
+description: "Search Our World In Data's published charts by keyword to find the chart you need, across topics like population, energy and electricity, CO2 and climate, poverty and GDP, health and causes of death, education, democracy, violence and war. Use this whenever someone wants to find, browse, link or embed an OWID chart and does not already have its URL, or asks what OWID publishes on a topic. Returns each chart's title, subtitle and URL, plus which visualisations it supports so you can build a ?tab= link. Not for: fetching the data behind a URL you already have (use fetch-chart-data); Python or pandas work, indicator and column metadata, or searching the full catalog of indicators and tables beyond published charts (use owid-catalog); combining OWID data with your own (use joining-data)."
 allowed-tools:
 - "Bash(curl:*)"
 - "Bash(cat:*)"
@@ -23,13 +23,7 @@ export enum ChartRecordType {
     MultiDimView = "multiDimView",
 }
 
-export enum ExplorerType {
-    Grapher = "grapher",
-    Indicator = "indicator",
-    Csv = "csv",
-}
-
-type GrapherTabName = "LineChart" | "ScatterPlot" | "StackedArea" | "DiscreteBar" | "StackedDiscreteBar" | "SlopeChart" | "StackedBar" | "Marimekko" | "Table" | "WorldMap"
+type GrapherTabName = "LineChart" | "ScatterPlot" | "StackedArea" | "DiscreteBar" | "StackedDiscreteBar" | "SlopeChart" | "StackedBar" | "Marimekko" | "Dumbbell" | "Table" | "WorldMap"
 
 interface BaseSearchChartHit {
     url: string
@@ -37,10 +31,11 @@ interface BaseSearchChartHit {
     slug: string
     availableEntities: string[]
     originalAvailableEntities?: string[]
-    objectID: string
     variantName?: string
     subtitle?: string
     availableTabs: GrapherTabName[]
+    publishedAt: string // ISO 8601 timestamp
+    updatedAt: string // ISO 8601 timestamp
 }
 
 type SearchChartViewHit = BaseSearchChartHit & {
@@ -49,14 +44,14 @@ type SearchChartViewHit = BaseSearchChartHit & {
 
 type SearchExplorerViewHit = BaseSearchChartHit & {
     type: ChartRecordType.ExplorerView
-    explorerType: ExplorerType
     queryParams: string
+    containerTitle: string // title of the explorer this view belongs to
 }
 
 type SearchMultiDimViewHit = BaseSearchChartHit & {
     type: ChartRecordType.MultiDimView
     queryParams: string
-    chartConfigId: string
+    containerTitle: string // title of the multi-dimensional chart this view belongs to
 }
 
 export type SearchChartHit =
@@ -104,6 +99,8 @@ The `availableTabs` field indicates what visualizations a chart supports. Use th
 | `ScatterPlot` | `scatter` | Scatter plot |
 | `StackedArea` | `stacked-area` | Stacked area chart |
 | `StackedBar` | `stacked-bar` | Stacked bar chart |
+| `StackedDiscreteBar` | `stacked-discrete-bar` | Stacked bar chart for a single time point |
+| `Dumbbell` | `dumbbell` | Dumbbell chart comparing two values per entity |
 
 To display a specific visualization, append `?tab=<value>` to the chart URL. For example:
 ```

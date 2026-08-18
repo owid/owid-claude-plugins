@@ -33,11 +33,13 @@ if fetch "$CHART.metadata.json?$PARAMS" "$META"; then
     all_match "timespan looks like a year range" "$META" '.columns[] | select(has("timespan"))' \
         '.timespan | test("^-?[0-9]+-[0-9]+$")'
 
-    # SKILL.md types descriptionKey as string[], and tells agents to pay special
-    # attention to it. A markdown bullet string and an array of strings need
-    # different handling, so the type has to be right.
-    all_match "descriptionKey is an array of strings, as documented" "$META" \
-        '.columns[] | select(has("descriptionKey"))' '.descriptionKey | type == "array"'
+    # SKILL.md tells agents to pay special attention to descriptionKey, so its
+    # type has to be right: a markdown bullet string and an array of strings need
+    # different handling.
+    all_match "descriptionKey is a string, as documented" "$META" \
+        '.columns[] | select(has("descriptionKey"))' '.descriptionKey | type == "string"'
+    all_match "descriptionKey is a markdown bulleted list" "$META" \
+        '.columns[] | select(has("descriptionKey"))' '.descriptionKey | test("^- ")'
     note "descriptionKey type: $(jq -r '[.columns[] | select(has("descriptionKey")) | .descriptionKey | type] | unique | join(", ")' "$META")"
     note "columns: $(jq -r '.columns | keys | join(", ")' "$META")"
 fi
@@ -58,10 +60,10 @@ if fetch "$CHART.csv?$PARAMS" "$CSV_SHORT"; then
     ok "short column names contain no spaces" \
         test "$data_columns" = "${data_columns// /}"
 
-    # SKILL.md documents the first three columns as Entity, Code, Year. With the
-    # recommended useColumnShortNames=true they come back lowercased, so this
-    # check reports whether the doc matches the call the doc recommends.
-    csv_header "header is Entity,Code,Year as documented" "$CSV_SHORT" "Entity,Code,Year"
+    # useColumnShortNames=true lowercases the first three headers. SKILL.md now
+    # documents both forms and tells agents to match case-insensitively; these two
+    # checks pin down which call produces which.
+    csv_header "useColumnShortNames=true lowercases the first three headers" "$CSV_SHORT" "entity,code,year"
 fi
 
 section "CSV endpoint without useColumnShortNames"
