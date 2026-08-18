@@ -83,7 +83,7 @@ Want to add or improve a skill? See [AGENTS.md](AGENTS.md) for repo conventions 
 
 ```bash
 make            # list targets
-make validate   # plugin manifest, skill frontmatter and registration
+make validate   # spec conformance, plugin manifest and marketplace registration
 make test       # contract tests: do the OWID endpoints still match what the skills document?
 make triggers   # trigger evals: does the right skill fire? (needs the claude CLI, costs tokens)
 ```

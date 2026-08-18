@@ -29,10 +29,13 @@ Plugins here are intentionally **versionless**: `.claude-plugin/marketplace.json
 
 Run `make` for the full list. The two you need most:
 
-- `make validate` — validates the marketplace manifest, and checks that every
-  skill's frontmatter `name` matches its directory and that it is registered in
-  `.claude-plugin/marketplace.json`. `claude plugin validate` alone catches
-  neither of the latter two, so run the make target rather than the CLI.
+- `make validate` — three checks with distinct jobs: spec conformance via
+  `skills-ref`, the reference validator the [Agent Skills
+  spec](https://agentskills.io/specification) recommends (agent-agnostic, so it
+  covers Codex/Gemini/Cursor users too); the marketplace manifest via
+  `claude plugin validate`; and that every skill is registered in
+  `.claude-plugin/marketplace.json`, which neither validator knows about. Run the
+  make target rather than any single CLI — none of the three subsumes another.
 - `make test` — the contract tests. These check that the OWID endpoints and
   response shapes each `SKILL.md` documents still match what the API returns —
   the way these skills are most likely to break. Add `SKILL=<name>` for one
