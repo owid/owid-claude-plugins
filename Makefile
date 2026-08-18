@@ -32,6 +32,13 @@ validate: ## Check spec conformance, the plugin manifest and marketplace registr
 	@# The marketplace manifest is Claude-specific and outside the spec.
 	@if command -v claude >/dev/null 2>&1; then claude plugin validate .; \
 	else echo "  ~ claude CLI not found - skipping manifest validation"; fi
+	@# Eval files must never be referenced from a SKILL.md. A reference would pull
+	@# test prose into the context budget of every user who triggers the skill, and
+	@# it is the one way the evals could leak into an agent's context at all.
+	@if grep -rnE '(^|[^a-z-])evals?/|triggers\.json|evals\.json|contract\.sh' skills/*/SKILL.md; then \
+	  echo "  x a SKILL.md references eval files - drop the reference or inline the content"; \
+	  exit 1; \
+	else echo "  ok  no SKILL.md references eval files"; fi
 	@# Registration: neither validator above knows about marketplace.json, and an
 	@# unregistered skill is installable by neither route.
 	@fail=0; \

@@ -5,9 +5,9 @@ questions, and only the third one needs a model in the loop grading output.
 
 | Layer | Question | Model in the loop? | Cost | Where |
 |---|---|---|---|---|
-| 1. Contract tests | Do the endpoints and response shapes documented in `SKILL.md` still match reality? | no | seconds | `skills/<skill>/evals/contract.sh` |
-| 2. Trigger evals | Does the skill fire when it should, stay quiet when it shouldn't, and not steal a sibling's job? | yes (routing only) | minutes | `skills/<skill>/evals/triggers.json` |
-| 3. Output evals | Is the output any good, and better than no skill at all? | yes (plus a human) | tens of minutes | `skills/<skill>/evals/evals.json` |
+| 1. Contract tests | Do the endpoints and response shapes documented in `SKILL.md` still match reality? | no | seconds | `evals/<skill>/contract.sh` |
+| 2. Trigger evals | Does the skill fire when it should, stay quiet when it shouldn't, and not steal a sibling's job? | yes (routing only) | minutes | `evals/<skill>/triggers.json` |
+| 3. Output evals | Is the output any good, and better than no skill at all? | yes (plus a human) | tens of minutes | `evals/<skill>/evals.json` |
 
 Layer 1 catches the failure mode that will actually bite this repo: these skills
 are thin documentation over live public OWID endpoints, so they rot when the API
@@ -20,28 +20,48 @@ keep for `joining-data` and `owid-catalog`, where the agent does real reasoning.
 
 ```
 Makefile                                # entry points — what you actually run
-evals/                                  # shared harness (this directory)
+evals/
 ├── README.md                           # you are here
 ├── lib/assert.sh                       # assertion helpers for contract tests
 ├── run-contract-tests.sh               # layer 1 runner
 ├── run-trigger-eval.py                 # layer 2 runner
-└── results/                            # gitignored — every run writes here
+├── results/                            # gitignored — every run writes here
+└── <skill>/                            # one directory per skill, mirroring skills/
+    ├── contract.sh                     # layer 1
+    ├── triggers.json                   # layer 2
+    ├── evals.json                      # layer 3
+    └── fixtures/                       # input files layer 3 cases need
 
-skills/<skill>/evals/                   # per-skill test inputs, committed
-├── contract.sh                         # layer 1
-├── triggers.json                       # layer 2
-├── evals.json                          # layer 3
-└── fixtures/                           # input files layer 3 cases need
+skills/<skill>/SKILL.md                 # the skill, and nothing else
 ```
+
+## Why evals live here and not inside the skill directory
+
+`skills/<skill>/` contains exactly one file, on purpose. A skill directory is the
+unit of distribution, and it is copied **recursively** into users' projects. The
+[`skills` CLI](https://github.com/vercel-labs/skills) that the README recommends
+for Codex, Gemini CLI and Cursor excludes only `metadata.json`, `.git`,
+`__pycache__` and `__pypackages__` — there is no ignore file and no opt-out. So
+anything under `skills/<skill>/` lands in someone else's repo.
+
+That matters less for tokens than for confusion. Fixture CSVs are realistic by
+design; once they sit in a user's `.agents/skills/`, a `find . -name '*.csv'` or a
+project-wide grep returns them alongside the user's real data. Keeping evals in a
+sibling top-level directory removes the possibility entirely rather than
+mitigating it: the installer never sees them.
+
+The same reasoning is why no `SKILL.md` may reference an eval file — that is the
+one remaining path by which this content could reach an agent's context, and
+`make validate` now enforces it rather than trusting the convention.
 
 **The rule that keeps this from becoming clutter: commit inputs, never outputs.**
 Test cases, assertions and fixtures are source. Run outputs, gradings,
 benchmarks and transcripts go to `evals/results/`, which is gitignored. The
 noisy 90% of an eval workflow is never checked in.
 
-Nothing under `evals/` is referenced from any `SKILL.md`. Skills must not route
-to their own eval files — that would put eval prose into the context budget of
-every user who triggers the skill.
+Nothing under `evals/` is referenced from any `SKILL.md`, and `make validate`
+fails if that ever changes. Skills must not route to their own eval files — that
+would put eval prose into the context budget of every user who triggers the skill.
 
 ## Layer 1 — contract tests
 

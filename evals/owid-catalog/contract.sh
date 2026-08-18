@@ -4,7 +4,7 @@
 # installed) and this file just runs it and translates the output.
 source "$EVALS_LIB/assert.sh"
 
-CHECKER="$SKILL_DIR/evals/contract_check.py"
+CHECKER="$EVAL_DIR/contract_check.py"
 OUT="$WORK/contract_check.out"
 
 section "Documentation drift"

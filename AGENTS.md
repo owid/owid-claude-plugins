@@ -6,12 +6,19 @@ This repository publishes **agent skills for working with Our World in Data** (s
 
 ```
 Makefile                        # entry points: make validate / test / triggers
-skills/<skill-name>/SKILL.md    # one directory per skill (Agent Skills format)
-skills/<skill-name>/evals/      # that skill's test cases and fixtures
+skills/<skill-name>/SKILL.md    # one directory per skill, and nothing else
 .claude-plugin/marketplace.json # marketplace + plugin definition
+evals/<skill-name>/             # that skill's test cases and fixtures
 evals/                          # shared eval harness + playbook (evals/README.md)
 install-prerequisites-macos.sh  # helper to install CLI tools skills rely on
 ```
+
+**Keep `skills/<skill-name>/` to just `SKILL.md`** unless a skill genuinely needs
+bundled `scripts/`, `references/` or `assets/`. A skill directory is copied
+recursively into users' projects by the cross-agent installer, which has no
+ignore mechanism — anything you put there ships to everyone. Evals live in a
+sibling `evals/<skill-name>/` for exactly this reason; see
+[evals/README.md](evals/README.md).
 
 ## Adding or changing a skill
 
@@ -46,13 +53,16 @@ For end-to-end testing, load the plugin directly in a live session:
 
 ## Evals
 
-Each skill has an `evals/` directory holding its test inputs; the shared harness
-and the playbook live in [evals/README.md](evals/README.md). Two rules:
+Each skill has an `evals/<skill-name>/` directory holding its test inputs; the
+shared harness and the playbook live in [evals/README.md](evals/README.md). Two
+rules, both enforced by `make validate`:
 
 - **Commit inputs, not outputs.** Test cases and fixtures are source. Everything
   a run produces goes to `evals/results/`, which is gitignored.
 - **Never reference eval files from a `SKILL.md`.** Skills that route to their
-  own evals spend the user's context budget on test prose.
+  own evals spend the user's context budget on test prose. This is the only path
+  by which eval content could reach an agent's context, so it is a hard check
+  rather than a convention.
 
 When you change a skill's `description`, re-run its trigger eval
 (`make triggers SKILL=<name>`) — the four skills cover adjacent ground, so a

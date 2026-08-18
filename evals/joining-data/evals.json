@@ -6,7 +6,9 @@
       "name": "per-capita-conversion",
       "prompt": "I have plastic-waste.csv with mismanaged plastic waste in tonnes for 2019, keyed by ISO3 code. Convert it to kilograms per person using Our World in Data population figures and give me the ranking.",
       "expected_output": "A per-capita ranking in kg/person for all 12 countries, joined on ISO3 and the year 2019, with the population source named.",
-      "files": ["evals/fixtures/plastic-waste.csv"],
+      "files": [
+        "evals/joining-data/fixtures/plastic-waste.csv"
+      ],
       "assertions": [
         "The join used ISO3 codes and the year 2019, not country names",
         "All 12 input countries appear in the output",
@@ -20,7 +22,9 @@
       "name": "iso2-codes-and-aggregate-rows",
       "prompt": "Plot our survey's trust score against GDP per capita from OWID. The survey is in trust-survey.csv. Use the most recent year where both have data.",
       "expected_output": "A scatter of trust score vs GDP per capita for the 10 real countries, with the ISO-2 codes mapped to ISO-3 first, and the SSA and EU rows identified as regional aggregates that cannot be joined by code.",
-      "files": ["evals/fixtures/trust-survey.csv"],
+      "files": [
+        "evals/joining-data/fixtures/trust-survey.csv"
+      ],
       "assertions": [
         "The ISO-2 country codes were mapped to ISO-3 before joining",
         "The SSA and EU rows are flagged as regional aggregates rather than silently dropped or joined as if they were countries",
