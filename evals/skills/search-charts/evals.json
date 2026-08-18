@@ -1,0 +1,40 @@
+{
+  "skill_name": "search-charts",
+  "evals": [
+    {
+      "id": 1,
+      "name": "topic-to-embeddable-chart",
+      "prompt": "I'm writing a piece on malaria for a general audience. Find me the best Our World in Data chart showing how malaria death rates have changed since 2000, give me the URL with the world map view open, and tell me what else you considered.",
+      "expected_output": "One recommended chart URL with ?tab=map appended, its title and subtitle, plus two or three alternative charts named with their titles.",
+      "assertions": [
+        "The recommended URL is an ourworldindata.org/grapher URL taken verbatim from the search response, not constructed by hand",
+        "The URL includes tab=map and WorldMap appears in that chart's availableTabs",
+        "At least two alternative charts are named with their titles",
+        "The response does not dump the raw search JSON"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "layman-vocabulary",
+      "prompt": "does owid have anything on how many people can read? like for poor countries over the last century",
+      "expected_output": "A literacy chart found despite the query using everyday wording rather than OWID's term, with the reformulated search term made visible.",
+      "assertions": [
+        "A literacy-related chart URL is returned",
+        "The response shows or states the search term actually used (e.g. 'literacy'), not just the user's phrasing",
+        "The response does not claim OWID has no data on this"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "no-good-match-edge-case",
+      "prompt": "find me the our world in data chart on the number of active TikTok users per country by month",
+      "expected_output": "An honest report that OWID has no chart matching this, ideally after trying a couple of search reformulations, with any near-adjacent charts (e.g. internet or social media use) offered instead. No fabricated URL.",
+      "assertions": [
+        "No fabricated grapher URL is presented as if it existed",
+        "The response states plainly that no close match was found",
+        "At least one search reformulation was attempted before concluding",
+        "Any chart offered as an alternative is a real URL from the search response"
+      ]
+    }
+  ]
+}

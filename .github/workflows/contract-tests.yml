@@ -1,0 +1,60 @@
+name: Checks
+
+# Two jobs:
+#   validate       - spec conformance and marketplace registration. Fast, offline
+#                    apart from fetching the validator. Should always be green.
+#   contract-tests - layer 1 of the eval setup (see evals/README.md): checks that
+#                    the OWID endpoints and response shapes documented in each
+#                    SKILL.md still match what the API actually returns. Runs on
+#                    a schedule too, because these skills can break without
+#                    anyone touching this repo.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # 06:00 UTC daily. A failure here usually means the API changed, not that
+    # someone broke the repo.
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      # The claude CLI is absent here, so `make validate` skips the marketplace
+      # manifest check and runs spec conformance plus registration.
+      - name: Validate skills
+        run: make validate
+
+  contract-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install duckdb
+        run: |
+          curl -fsSL https://install.duckdb.org | sh
+          echo "$HOME/.duckdb/cli/latest" >> "$GITHUB_PATH"
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Run contract tests
+        run: make test
+
+      - name: Upload responses on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contract-test-responses
+          path: evals/results/contract/
+          retention-days: 7

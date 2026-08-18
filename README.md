@@ -79,12 +79,18 @@ Data published by Our World in Data is open: it is available under the [Creative
 
 ## Development
 
-Want to add or improve a skill? See [AGENTS.md](AGENTS.md) for repo conventions (skill layout, registration, testing). In short:
+Want to add or improve a skill? See [AGENTS.md](AGENTS.md) for repo conventions and [evals/README.md](evals/README.md) for how the skills are evaluated.
 
-- Each skill is a directory under `skills/` with a `SKILL.md` (frontmatter `name` must match the directory name).
-- Register new skills in `.claude-plugin/marketplace.json`.
-- Test with `claude plugin validate .` and by loading the plugin directly: `claude --debug --plugin-dir .`
-- Plugins are versionless on purpose: every commit to `main` is a release.
+```bash
+make            # list targets
+make validate   # spec conformance, plugin manifest and marketplace registration
+make test       # contract tests: do the OWID endpoints still match what the skills document?
+make triggers   # trigger evals: does the right skill fire? (needs the claude CLI, costs tokens)
+```
+
+Add `SKILL=<name>` to `test` or `triggers` to run a single skill. To try the skills in a live session, load the plugin directly with `claude --debug --plugin-dir .`
+
+Plugins here are versionless on purpose: every commit to `main` is a release.
 
 This repository is limited to skills that rely on public OWID endpoints and common CLI tools; skills that require OWID-internal infrastructure or credentials are out of scope.
 

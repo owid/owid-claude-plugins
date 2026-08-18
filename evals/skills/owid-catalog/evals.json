@@ -1,0 +1,42 @@
+{
+  "skill_name": "owid-catalog",
+  "evals": [
+    {
+      "id": 1,
+      "name": "fetch-with-metadata-and-attribution",
+      "prompt": "In Python, load OWID life expectancy data and give me the five countries with the largest gain since 1990. I need to know the units and how to credit the source in a publication.",
+      "expected_output": "A ranked list of five countries with their gain, the unit taken from the column metadata, and a citation built from the metadata's full citation or attribution fields.",
+      "assertions": [
+        "The script runs successfully as written",
+        "The codebook or column metadata was printed rather than the units being assumed",
+        "The stated unit matches the metadata",
+        "An attribution string is offered, based on the metadata's citation or attribution/producer fields",
+        "Output was converted to CSV or plain text rather than relying on rich display"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "semantic-indicator-search",
+      "prompt": "I want OWID indicators about how much people trust their government. I doubt those exact words appear in any title, so keyword search probably won't cut it.",
+      "expected_output": "A shortlist of relevant indicators found via semantic search, each with its catalog path and the dataset it belongs to, sorted so the most-used indicators appear first.",
+      "assertions": [
+        "search() was called with kind='indicator'",
+        "Results were rendered via to_frame().to_csv() or equivalent plain-text output",
+        "Each suggested indicator includes its catalog path",
+        "The response explains what the channel/namespace fragments of the path mean, or at least which channel was chosen and why"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "extra-dimensions-beyond-grapher",
+      "prompt": "Does OWID have population split by sex and five-year age group? The charts only give me totals and I need the breakdown for a cohort model in pandas.",
+      "expected_output": "A garden-channel table with sex and age dimensions located and loaded, with an explanation of why garden rather than grapher is the right channel for multi-dimensional data.",
+      "assertions": [
+        "A table or indicator with sex and age dimensions was actually located and loaded",
+        "The garden channel was chosen, with the reason stated (grapher is limited to time and entity)",
+        "The dimensions present in the loaded table are shown to the user",
+        "The script runs successfully as written"
+      ]
+    }
+  ]
+}

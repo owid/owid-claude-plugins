@@ -1,0 +1,55 @@
+[
+  {
+    "query": "in python, load owid's life expectancy data into a dataframe and print the codebook so i can see units and sources before i start analysing",
+    "should_trigger": true,
+    "note": "core case: python plus metadata"
+  },
+  {
+    "query": "I need every indicator Our World in Data has about antimicrobial resistance, not just the ones that ended up in published charts. Show me which datasets they come from.",
+    "should_trigger": true,
+    "note": "requires indicator/table search beyond charts"
+  },
+  {
+    "query": "does owid have population broken down by sex and age group? the grapher charts only seem to give me totals and i need the extra dimensions for a cohort model",
+    "should_trigger": true,
+    "note": "the garden vs grapher channel distinction is the answer"
+  },
+  {
+    "query": "write a uv script that pulls owid renewable energy share, resamples to 5-year means per country, and writes the result to renewables_5yr.parquet",
+    "should_trigger": true,
+    "note": "python analysis pipeline, casual about which OWID access path"
+  },
+  {
+    "query": "semantic search would help here — i want owid indicators about 'how much people trust their government', i doubt those exact words are in any title",
+    "should_trigger": true,
+    "note": "embedding search is the documented differentiator"
+  },
+  {
+    "query": "quick one — what's the URL of the OWID chart on internet users as a share of population?",
+    "should_trigger": false,
+    "expected_skill": "search-charts",
+    "note": "a lookup, no python needed"
+  },
+  {
+    "query": "curl the metadata for ourworldindata.org/grapher/co2-emissions-per-capita and show me the descriptionKey entries",
+    "should_trigger": false,
+    "expected_skill": "fetch-chart-data",
+    "note": "explicitly language-agnostic and url-based"
+  },
+  {
+    "query": "pip install owid-catalog is failing on python 3.9 in our CI — can you look at the version constraints in pyproject.toml and figure out what's incompatible",
+    "should_trigger": false,
+    "note": "near-miss: names the library, but it's a packaging problem"
+  },
+  {
+    "query": "load this parquet of our website analytics into pandas and give me weekly unique visitors for the last quarter",
+    "should_trigger": false,
+    "note": "near-miss: python data analysis with pandas, no OWID data involved"
+  },
+  {
+    "query": "i've got national fertiliser use in fertiliser.csv with iso3 codes, convert it to per hectare of cropland using owid's agricultural land data",
+    "should_trigger": false,
+    "expected_skill": "joining-data",
+    "note": "external data joined to OWID; the join guidance is the point"
+  }
+]

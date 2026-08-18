@@ -1,0 +1,55 @@
+[
+  {
+    "query": "get me the numbers behind https://ourworldindata.org/grapher/share-electricity-renewables for Germany, France and Spain from 2010 onwards — keep the response small, I don't need every country",
+    "should_trigger": true,
+    "note": "core case: url in hand, wants the documented country/time/csvType params"
+  },
+  {
+    "query": "my editor wants a footnote about the limitations of this data — the chart is https://ourworldindata.org/grapher/annual-co2-emissions-per-country. what caveats should I mention?",
+    "should_trigger": true,
+    "note": "the answer lives in metadata descriptionKey, which SKILL.md flags"
+  },
+  {
+    "query": "i need the citation string for owid's population chart for my paper's reference list, chart is at ourworldindata.org/grapher/population",
+    "should_trigger": true,
+    "note": "metadata-only request, no data download needed"
+  },
+  {
+    "query": "download the data for ourworldindata.org/grapher/life-expectancy into a file and tell me what the columns mean and what units they're in before you show me any rows",
+    "should_trigger": true,
+    "note": "tests the 'always fetch metadata first' instruction"
+  },
+  {
+    "query": "whats the deal with the Code column in owid csv exports? i'm seeing values like OWID_WRL that arent iso codes and it's breaking my import script",
+    "should_trigger": true,
+    "note": "casual, about the documented CSV structure rather than a download"
+  },
+  {
+    "query": "what data does our world in data have about how many people die from air pollution each year? i don't have a link to anything yet",
+    "should_trigger": false,
+    "expected_skill": "search-charts",
+    "note": "no url — discovery first"
+  },
+  {
+    "query": "write me a python script that loads owid child mortality data as a pandas dataframe with the column metadata included",
+    "should_trigger": false,
+    "expected_skill": "owid-catalog",
+    "note": "python-native path"
+  },
+  {
+    "query": "fetch https://data.giss.nasa.gov/gistemp/tabledata_v4/GLB.Ts+dSST.csv and give me the annual mean temperature anomaly for 2023",
+    "should_trigger": false,
+    "note": "near-miss: fetching a csv from a url, but not an OWID chart"
+  },
+  {
+    "query": "the .csv export on our grapher staging instance times out for charts with more than about 50 entities selected — can you look at the download handler?",
+    "should_trigger": false,
+    "note": "near-miss: OWID csv exports, but it's a server bug in another repo"
+  },
+  {
+    "query": "i already downloaded co2.csv and population.csv from owid, now work out emissions per person for each country in 2020",
+    "should_trigger": false,
+    "expected_skill": "joining-data",
+    "note": "files already local; the work is the join"
+  }
+]

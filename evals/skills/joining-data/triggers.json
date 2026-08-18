@@ -1,0 +1,55 @@
+[
+  {
+    "query": "i have plastic-waste.csv with columns country_iso3, tonnes_2019 — turn this into kg of plastic waste per person using owid population data for 2019",
+    "should_trigger": true,
+    "note": "core case: per-capita conversion against OWID population"
+  },
+  {
+    "query": "I want a scatter plot of our internal survey's trust score (survey.csv, one row per country, ISO-2 codes) against GDP per capita from Our World in Data. Latest year available for both.",
+    "should_trigger": true,
+    "note": "requires the ISO-2 → ISO-3 mapping step and choosing a GDP series"
+  },
+  {
+    "query": "merging this WHO extract with owid data and getting nulls for about 30 rows — a lot of them are things like 'Sub-Saharan Africa' and 'European Region'. what am i doing wrong",
+    "should_trigger": true,
+    "note": "the regional-aggregates warning is the answer"
+  },
+  {
+    "query": "got a dataset of national forest cover with no year column at all, just country and a percentage. i need to combine it with owid land use data — how do i handle the missing year",
+    "should_trigger": true,
+    "note": "the 'external data lacks a year column' guidance"
+  },
+  {
+    "query": "need co2 emissions per capita for every country back as far as the data goes — i know owid has both the emissions and the long run population series, combine them",
+    "should_trigger": true,
+    "note": "two OWID series; tests the long-run vs UN population choice"
+  },
+  {
+    "query": "join orders.csv and customers.csv on customer_id in duckdb and give me the order count per customer for last quarter",
+    "should_trigger": false,
+    "note": "near-miss: a join, in duckdb, with no country dimension and no OWID data"
+  },
+  {
+    "query": "just download the data behind https://ourworldindata.org/grapher/population for India and China, nothing fancy",
+    "should_trigger": false,
+    "expected_skill": "fetch-chart-data",
+    "note": "single download, no join"
+  },
+  {
+    "query": "what charts does owid have that compare life expectancy with healthcare spending?",
+    "should_trigger": false,
+    "expected_skill": "search-charts",
+    "note": "discovery, even though it names two metrics"
+  },
+  {
+    "query": "our etl step for un_wpp is failing with a merge conflict between the garden and grapher tables — can you look at the python in the step file?",
+    "should_trigger": false,
+    "note": "near-miss: 'merge' plus OWID datasets, but it's internal ETL code"
+  },
+  {
+    "query": "in a notebook, pull two owid indicators into pandas and merge them on country and year, i want the metadata for both so i can label the axes properly",
+    "should_trigger": false,
+    "expected_skill": "owid-catalog",
+    "note": "genuinely ambiguous: a join, but both sides are OWID and the ask is python-native. Either skill firing may be acceptable — review this one by hand."
+  }
+]
